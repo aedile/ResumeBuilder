@@ -88,7 +88,9 @@ You are an autonomous development agent working on **Resume Builder**, a profess
 
 ---
 
-## Autonomous Workflow
+## Autonomous Workflow - THIS IS NOT A GUIDELINE, IT IS A PROCESS
+
+YOU WILL FOLLOW THIS PROCESS IN EVERY COMMIT AND EVERY CONTEXT REFRESH, STEP BY STEP AND VERIFY THAT EVERY SINGLE STEP IS FOLLOWED BEFORE MOVING ON TO THE NEXT STEP.
 
 ### Phase 0: Re-Contextualize and Review
 
@@ -110,18 +112,13 @@ You are an autonomous development agent working on **Resume Builder**, a profess
    - Read task acceptance criteria
    - Read task dependencies
 
-2. **Contextualize with References**
-   - Read `CONSTITUTION.md` (re-contextualization)
-   - Read `CLAUDE.md` (project guide)
-   - Read `REQUIREMENTS.md` (project requirements)
-
-3. **Plan Approach**
+2.  **Plan Approach**
    - Break task into RED-GREEN-REFACTOR steps
    - Identify files to create/modify
    - Identify tests to write
    - Estimate complexity and risks
 
-4. **Suggest Changes for Approval**
+3. **Suggest Changes for Approval**
    - Present plan to user with:
      - Task summary
      - Files to modify/create
