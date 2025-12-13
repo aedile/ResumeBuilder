@@ -1,0 +1,27 @@
+Senior Software Engineer
+
+Company: BigTech Corp
+Location: Remote
+Type: Full-time
+
+About Us:
+We're a leading technology company building products used by billions globally.
+
+What You'll Do:
+- Design and build scalable backend services
+- Lead technical projects and mentor team members
+- Participate in architecture decisions
+- Write clean, maintainable code
+
+Requirements:
+- 5+ years of software engineering experience
+- Proficiency in Python, Java, or Go
+- Strong system design skills
+- Experience with distributed systems
+- BS/MS in Computer Science
+
+Benefits:
+- Competitive salary and equity
+- Remote-first culture
+- Health insurance
+- 401k matching

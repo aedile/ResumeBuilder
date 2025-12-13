@@ -1,0 +1,26 @@
+Machine Learning Engineer
+
+Company: TechStartup Inc.
+Location: San Francisco, CA (Hybrid)
+Type: Full-time
+
+About the Role:
+We're seeking a Machine Learning Engineer to join our growing AI team. You'll build and deploy production ML models serving millions of users.
+
+Requirements:
+- 3+ years of ML experience
+- Strong Python skills
+- Experience with PyTorch or TensorFlow
+- Knowledge of MLOps and model deployment
+- Bachelor's degree in Computer Science or related field
+
+Nice to Have:
+- Experience with NLP or computer vision
+- Cloud platform experience (AWS, GCP)
+- Kubernetes and Docker knowledge
+
+Responsibilities:
+- Design and implement ML models for recommendation systems
+- Deploy models to production with monitoring
+- Collaborate with data engineers on data pipelines
+- Mentor junior engineers

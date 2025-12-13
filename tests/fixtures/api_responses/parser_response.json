@@ -1,0 +1,32 @@
+{
+    "id": "msg_01AbCdEfGhIjKlMnOpQr",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+        {
+            "type": "tool_use",
+            "id": "toolu_01XyZaBcDeFgHiJkLmNo",
+            "name": "parse_profile",
+            "input": {
+                "first_name": "Alex",
+                "last_name": "Chen",
+                "headline": "Staff Machine Learning Engineer",
+                "summary": "12+ years of experience building ML systems at scale",
+                "skills": [
+                    "Python",
+                    "PyTorch",
+                    "TensorFlow",
+                    "MLOps"
+                ],
+                "experience_years": 12
+            }
+        }
+    ],
+    "model": "claude-3-5-sonnet-20241022",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "usage": {
+        "input_tokens": 450,
+        "output_tokens": 120
+    }
+}
