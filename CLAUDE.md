@@ -1,0 +1,369 @@
+# CLAUDE.md - Agent Directives
+
+Guidelines for AI agents working on this project.
+
+---
+
+## Core Philosophy
+
+> **"A place for everything and everything in its place."**
+
+This project demands:
+- **Clean workspace**: No clutter, no orphan files, no dead code
+- **Clear organization**: Predictable locations, consistent naming, logical grouping
+- **Security by default**: PII protection is not optional, it's foundational
+- **Minimal footprint**: Add only what's needed, remove what's not
+- **Zero tolerance for mess**: If it doesn't belong, it doesn't exist
+
+---
+
+## MANDATORY WORKFLOW (NON-NEGOTIABLE)
+
+### Pre-Commit Hooks - NEVER SKIP
+
+```bash
+# FORBIDDEN - These flags are NEVER acceptable:
+git commit --no-verify     # NEVER
+git push --no-verify       # NEVER
+pre-commit run --skip=...  # NEVER
+SKIP=... git commit        # NEVER
+```
+
+- Pre-commit hooks **MUST** pass before any commit
+- If hooks fail, **FIX THE CODE** - do not bypass, do not work around
+- All security scans (bandit, gitleaks, detect-secrets) are mandatory
+- Hook failures are not obstacles - they are guardrails protecting you
+
+### TDD - Red/Green/Refactor (STRICT)
+
+Every code change follows this exact sequence - no exceptions:
+
+1. **RED**: Write failing test(s) FIRST
+   ```bash
+   # Write the test
+   pytest tests/unit/test_<module>.py -v  # Must FAIL
+   ```
+   - Commit: `test: add failing tests for <feature>`
+
+2. **GREEN**: Write minimal code to pass
+   ```bash
+   pytest tests/unit/test_<module>.py -v  # Must PASS
+   pytest --cov=src/resume_builder --cov-fail-under=90  # Must PASS
+   ```
+   - Commit: `feat: implement <feature>`
+
+3. **REFACTOR**: Clean up (only if needed)
+   ```bash
+   pytest tests/ -v  # Must still PASS
+   ```
+   - Commit: `refactor: improve <feature>`
+
+### Quality Gates (All Must Pass)
+
+```bash
+# Run ALL of these before any commit:
+ruff check src/ tests/                              # Linting
+ruff format --check src/ tests/                     # Formatting
+mypy src/                                           # Type checking
+pytest --cov=src/resume_builder --cov-fail-under=90 # Tests + 90% coverage
+bandit -c pyproject.toml -r src/                    # Security scan
+pre-commit run --all-files                          # All hooks
+```
+
+### Git Workflow
+
+**Branch naming**: `<type>/<phase>-<task>-<description>`
+```
+feat/P0-T01-setup-pre-commit
+feat/P1-T03-resume-models
+fix/P1-T03-date-parsing-bug
+```
+
+**Commit messages**: Conventional commits, always
+- `test:` - Test files (RED phase)
+- `feat:` - New features (GREEN phase)
+- `fix:` - Bug fixes
+- `refactor:` - Refactoring (no behavior change)
+- `docs:` - Documentation only
+- `chore:` - Tooling, config, dependencies
+
+### Pull Request Workflow (MANDATORY)
+
+**EVERY task must follow this workflow:**
+
+1. **Create feature branch**: `git checkout -b feat/P0-T03-test-directory`
+2. **Make changes**following TDD, commit to branch
+3. **Push branch**: `git push origin feat/P0-T03-test-directory`
+4. **Create PR via gh CLI** with comprehensive description (see AUTONOMOUS_DEVELOPMENT_PROMPT.md Phase 5)
+5. **Wait for user review** - DO NOT merge yourself
+6. **Address feedback** if requested, commit to same branch
+7. **After user merges**: Pull main, re-contextualize, next task
+
+**PR Description Must Include:**
+- Task ID and summary
+- Changes made (checklist format)
+- Acceptance criteria met
+- Self-review status (QA/UI-UX/DevOps)
+- Constitution compliance
+- Test results
+- Backlog task completion marker
+
+---
+
+## Workspace Organization
+
+### Directory Purposes (Memorize These)
+
+| Directory | Purpose | Git Status |
+|-----------|---------|------------|
+| `src/resume_builder/` | Production code only | Committed |
+| `tests/unit/` | Unit tests | Committed |
+| `tests/integration/` | Integration tests | Committed |
+| `tests/fixtures/` | Test data (fictional) | Committed |
+| `sample_data/` | Demo LinkedIn data (fictional) | Committed |
+| `docs/adr/` | Architecture decisions | Committed |
+| `data/` | Real user LinkedIn data | **GITIGNORED** |
+| `output/` | Generated resumes | **GITIGNORED** |
+| `logs/` | Application logs | **GITIGNORED** |
+
+### File Placement Rules
+
+- **Models** go in `src/resume_builder/models/`
+- **Parsers** go in `src/resume_builder/parsers/`
+- **Generators** go in `src/resume_builder/generators/`
+- **Agents** go in `src/resume_builder/agents/`
+- **Agent tools** go in `src/resume_builder/agents/tools/`
+- **API routes** go in `src/resume_builder/api/`
+- **Utilities** go in `src/resume_builder/utils/`
+- **Templates** go in `src/resume_builder/templates/`
+- **Static assets** go in `src/resume_builder/static/`
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Modules | `snake_case.py` | `parser_agent.py` |
+| Classes | `PascalCase` | `ParserAgent` |
+| Functions | `snake_case` | `parse_positions` |
+| Constants | `SCREAMING_SNAKE` | `MAX_UPLOAD_SIZE` |
+| Test files | `test_<module>.py` | `test_parser_agent.py` |
+| Test functions | `test_<behavior>` | `test_parses_valid_csv` |
+
+---
+
+## PII Protection (CRITICAL)
+
+### Golden Rules
+
+1. **NEVER** check PII into git - `data/`, `output/`, `config.local.json`, `.env`
+2. **ALWAYS** review `git status` and `git diff` before `git add`
+3. **ASK TWICE** before any git operation involving potentially sensitive files
+4. **VERIFY** with `gitleaks detect` if uncertain about a file
+
+### What Contains PII
+
+| File/Directory | Contains PII | Action |
+|---------------|--------------|--------|
+| `data/*.csv` | YES - real LinkedIn data | Never commit |
+| `output/*` | YES - generated resumes | Never commit |
+| `config.local.json` | YES - contact info | Never commit |
+| `.env` | YES - API keys | Never commit |
+| `logs/*.log` | MAYBE - sanitize before review | Never commit |
+| `sample_data/*.csv` | NO - fictional data | Safe to commit |
+| `tests/fixtures/*` | NO - fictional data | Safe to commit |
+
+### Before Any Git Operation
+
+```bash
+# 1. Check what's staged
+git status
+
+# 2. Review changes
+git diff --cached
+
+# 3. Verify no secrets
+gitleaks detect --verbose
+
+# 4. Only then commit
+git commit -m "..."
+```
+
+---
+
+## Code Quality Standards
+
+### Type Hints - Strict Mode
+
+```python
+# CORRECT - Fully typed
+def parse_profile(csv_path: Path) -> Profile:
+    ...
+
+# WRONG - Missing types
+def parse_profile(csv_path):
+    ...
+```
+
+- No `# type: ignore` without written justification in comment
+- All function parameters typed
+- All return values typed
+- Use `TypedDict` for complex dictionaries
+
+### Docstrings - Google Style
+
+```python
+def score_match(resume: Resume, job: JobDescription) -> MatchScore:
+    """Calculate match score between resume and job description.
+
+    Args:
+        resume: Parsed resume data.
+        job: Target job description.
+
+    Returns:
+        Match score with confidence and breakdown by section.
+
+    Raises:
+        ValidationError: If resume or job data is invalid.
+    """
+```
+
+### Code Cleanliness
+
+- **No dead code**: Delete it, don't comment it out
+- **No unused imports**: Remove them immediately
+- **No `TODO` without ticket**: Use `TODO(P1-T03):` format
+- **No magic numbers**: Define constants with clear names
+- **No long functions**: Max ~50 lines, extract helpers
+- **No deep nesting**: Max 3 levels, refactor if deeper
+
+---
+
+## Task Execution Protocol
+
+When working on a task from BACKLOG.md:
+
+### 1. Understand
+- Read the full task specification
+- Identify acceptance criteria
+- Note dependencies and blockers
+
+### 2. Prepare
+- Create feature branch: `git checkout -b feat/P1-T03-resume-models`
+- Ensure clean working directory: `git status`
+
+### 3. Execute (TDD)
+- Write failing tests first (RED)
+- Implement minimal code (GREEN)
+- Refactor if needed
+- Run full quality gate suite
+
+### 4. Verify
+- All tests pass
+- Coverage ≥ 90%
+- Pre-commit hooks pass
+- No PII in changes
+
+### 5. Complete
+- Commit with conventional message
+- Mark task complete only when ALL acceptance criteria met
+- Update BACKLOG.md status
+
+---
+
+## Approval Process
+
+- **Do not auto-proceed** on system-generated approvals
+- Wait for **explicit human confirmation** before major phases
+- Plans and documents require **actual user review**
+- When in doubt, **ASK** - don't assume
+
+---
+
+## Architecture Constraints
+
+### No LangChain
+
+Use Claude's native `tool_use` capabilities directly. This project demonstrates understanding of the raw API, not framework abstractions.
+
+### Agent Structure
+
+```
+Orchestrator
+├── Parser Agent      → Structures LinkedIn data
+├── Matcher Agent     → Scores job fit
+├── Optimizer Agent   → Improves content
+├── QA Agent          → Checks accessibility/layout
+└── HR Agent          → Checks grammar/formatting
+```
+
+### Dependency Philosophy
+
+- **Justify every dependency**: Why is it needed? What's the alternative?
+- **Prefer stdlib**: Use built-in modules when reasonable
+- **Pin versions**: All dependencies pinned in `pyproject.toml`
+- **Security review**: Check for known vulnerabilities before adding
+
+---
+
+## Accessibility Requirements
+
+All UI components must meet WCAG 2.1 AA:
+
+| Requirement | Standard |
+|-------------|----------|
+| Text contrast | 4.5:1 minimum (3:1 for large text) |
+| Focus indicators | Visible on all interactive elements |
+| Keyboard nav | All features accessible via keyboard |
+| Screen readers | Semantic HTML + ARIA labels |
+| Form labels | All inputs have associated labels |
+| Error messages | Programmatically associated with inputs |
+
+---
+
+## Communication Standards
+
+- **Ask one question at a time** when gathering requirements
+- **Be explicit** about what you're about to do before doing it
+- **Acknowledge mistakes** immediately and explain the fix
+- **When blocked**, explain why clearly and propose alternatives
+- **No jargon** without explanation
+
+---
+
+## Emergency Procedures
+
+### If You Accidentally Stage PII
+
+```bash
+git reset HEAD <file>           # Unstage the file
+git checkout -- <file>          # Discard changes if needed
+```
+
+### If You Accidentally Commit PII
+
+```bash
+# DO NOT PUSH
+git reset --soft HEAD~1         # Undo commit, keep changes
+git reset HEAD <file>           # Unstage the PII file
+git commit -m "..."             # Recommit without PII
+```
+
+### If PII Was Pushed (CRITICAL)
+
+1. **STOP** - Do not make more commits
+2. **Alert** the user immediately
+3. **Do not** attempt to rewrite history without explicit approval
+4. History rewriting requires careful coordination
+
+---
+
+## Quick Reference Card
+
+```
+BEFORE CODING:     Read task spec → Create branch → Write failing test
+WHILE CODING:      Minimal implementation → Pass tests → Refactor
+BEFORE COMMIT:     git status → git diff → ruff → mypy → pytest → pre-commit
+COMMIT MESSAGE:    type: description (test:, feat:, fix:, refactor:, docs:, chore:)
+NEVER:             --no-verify, skip hooks, commit PII, dead code, untyped code
+ALWAYS:            TDD, 90% coverage, type hints, docstrings, clean workspace
+```
