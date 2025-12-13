@@ -10,7 +10,7 @@ This document tracks overall project progress across all phases. Detailed task s
 
 | Phase | Name | Status | Progress | Description |
 |-------|------|--------|----------|-------------|
-| **0** | [Foundation](docs/backlog/phase-0.md) | Not Started | 0/8 | Development environment, tooling, sample data |
+| **0** | [Foundation](docs/backlog/phase-0.md) | Complete | 8/8 | Development environment, tooling, sample data |
 | **1** | [Core Functionality](docs/backlog/phase-1.md) | Not Started | 0/12 | Models, parsers, generators, templates |
 | **2** | [AI Integration](docs/backlog/phase-2.md) | Not Started | 0/10 | Agents, tools, orchestration |
 | **3** | [Review & Polish](docs/backlog/phase-3.md) | Not Started | 0/8 | QA agent, HR agent, accessibility |
