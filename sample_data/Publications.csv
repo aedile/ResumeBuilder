@@ -1,0 +1,2 @@
+Publication Title,Publication/Publisher,Publication Url,Publication Date,Description
+Scaling Deep Learning Training with Efficient Data Parallelism,Proceedings of MLSys Conference 2022,https://mlsys.org/virtual/2022/poster/123,2022-08,"Paper presenting novel techniques for distributed deep learning training. Demonstrated 3x speedup on large-scale neural networks while maintaining model accuracy. Co-authored with team members at TechVision AI."

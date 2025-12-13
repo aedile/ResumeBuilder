@@ -1,0 +1,25 @@
+Company Name,Title,Description,Location,Started On,Finished On,
+TechVision AI,Staff Machine Learning Engineer,"Leading ML infrastructure and model development for next-generation AI products. Key achievements:
+• Architected and deployed distributed training pipeline reducing model training time by 60%
+• Led team of 5 ML engineers building production recommendation system serving 10M+ daily users
+• Designed MLOps platform enabling rapid experimentation and deployment of 50+ models
+• Mentored junior engineers and established best practices for model versioning and monitoring
+• Collaborated with research teams to productionize state-of-the-art deep learning models","San Francisco, California, United States",2021-03,,
+DataFlow Inc,Senior Machine Learning Engineer,"Built and scaled machine learning systems for real-time data processing and analytics. Key contributions:
+• Developed computer vision models for automated quality control with 98% accuracy
+• Implemented feature store and model registry improving team productivity by 40%
+• Optimized inference pipeline to handle 100K requests/second with <10ms latency
+• Led migration from monolithic to microservices architecture for ML services
+• Presented technical talks at internal conferences on MLOps best practices","San Francisco, California, United States",2018-01,2021-03,
+CloudScale Systems,Machine Learning Engineer,"Designed and deployed ML models for cloud infrastructure optimization and anomaly detection. Achievements:
+• Created predictive scaling system reducing cloud costs by 25% while maintaining SLA
+• Built anomaly detection models for security and performance monitoring
+• Developed A/B testing framework for model evaluation and deployment
+• Collaborated with data engineering team to build robust data pipelines
+• Contributed to open-source ML libraries used by wider community","Seattle, Washington, United States",2015-06,2017-12,
+StartupXYZ,Software Engineer,"Full-stack development and early-stage ML experimentation for fast-growing startup. Responsibilities:
+• Built backend APIs using Python/Django serving mobile and web applications
+• Implemented initial recommendation algorithms increasing user engagement by 35%
+• Developed data collection and analytics infrastructure
+• Participated in product design and customer interviews
+• Wore multiple hats in fast-paced startup environment","San Francisco, California, United States",2012-07,2015-05,
