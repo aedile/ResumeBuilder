@@ -13,6 +13,7 @@ config.local.json
 # LinkedIn data exports (redundant with data/ but explicit for safety)
 *.csv
 !sample_data/*.csv
+!tests/fixtures/**/*.csv
 
 # Generated resumes (redundant with output/ but explicit for safety)
 /output/*.html

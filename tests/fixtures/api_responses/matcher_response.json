@@ -1,0 +1,35 @@
+{
+    "id": "msg_02PqRsTuVwXyZaBcDeFg",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+        {
+            "type": "tool_use",
+            "id": "toolu_02HiJkLmNoPqRsTuVwXy",
+            "name": "score_match",
+            "input": {
+                "overall_score": 0.85,
+                "skills_match": 0.90,
+                "experience_match": 0.88,
+                "education_match": 0.75,
+                "confidence": 0.82,
+                "matched_requirements": [
+                    "3+ years ML experience",
+                    "Python proficiency",
+                    "PyTorch/TensorFlow",
+                    "MLOps knowledge"
+                ],
+                "missing_requirements": [
+                    "Cloud certifications preferred"
+                ]
+            }
+        }
+    ],
+    "model": "claude-3-5-sonnet-20241022",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "usage": {
+        "input_tokens": 850,
+        "output_tokens": 180
+    }
+}
