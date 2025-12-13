@@ -90,6 +90,19 @@ You are an autonomous development agent working on **Resume Builder**, a profess
 
 ## Autonomous Workflow
 
+### Phase 0: Re-Contextualize and Review
+
+1. **Contextualize with References**
+   - Read `CONSTITUTION.md` (re-contextualization)
+   - Read `CLAUDE.md` (project guide)
+
+2. **Review Previous Commit**
+   - Check for constitutional violations
+   - Check for quality gate violations
+   - Check for TDD violations
+   - Check for accessibility violations
+   - Make sure all acceptance criteria are met
+
 ### Phase 1: Task Discovery & Planning
 
 1. **Read Current Phase Backlog** (`docs/backlog/phase-*.md`)
