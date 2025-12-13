@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Resume Builder User Configuration",
+    "description": "Schema for config.local.json containing user contact information (PII). This file must NEVER be committed to git.",
+    "type": "object",
+    "properties": {
+        "contact": {
+            "type": "object",
+            "description": "User contact information",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address"
+                },
+                "phone": {
+                    "type": "string",
+                    "pattern": "^[\\d\\s\\-\\(\\)\\+]+$",
+                    "description": "User's phone number with optional formatting"
+                },
+                "linkedin_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https://([a-z]{2,3}\\.)?linkedin\\.com/",
+                    "description": "LinkedIn profile URL"
+                },
+                "github_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https://github\\.com/",
+                    "description": "GitHub profile URL"
+                },
+                "portfolio_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Personal portfolio or website URL"
+                }
+            },
+            "required": [
+                "email"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "contact"
+    ],
+    "additionalProperties": false
+}

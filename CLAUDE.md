@@ -60,14 +60,20 @@ Every code change follows this exact sequence - no exceptions:
 
 ### Quality Gates (All Must Pass)
 
+**CRITICAL**: This project uses Poetry for dependency management. ALL Python commands must be run via `poetry run`.
+
 ```bash
 # Run ALL of these before any commit:
-ruff check src/ tests/                              # Linting
-ruff format --check src/ tests/                     # Formatting
-mypy src/                                           # Type checking
-pytest --cov=src/resume_builder --cov-fail-under=90 # Tests + 90% coverage
-bandit -c pyproject.toml -r src/                    # Security scan
-pre-commit run --all-files                          # All hooks
+poetry run ruff check src/ tests/                              # Linting
+poetry run ruff format --check src/ tests/                     # Formatting
+poetry run mypy src/                                           # Type checking
+poetry run pytest --cov=src/resume_builder --cov-fail-under=90 # Tests + 90% coverage
+poetry run bandit -c pyproject.toml -r src/                    # Security scan
+pre-commit run --all-files                                     # All hooks
+
+# For Python scripts/validation:
+poetry run python3 script.py       # CORRECT
+python3 script.py                  # WRONG - bypasses Poetry environment
 ```
 
 ### Git Workflow
