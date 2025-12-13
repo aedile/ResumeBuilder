@@ -1,0 +1,53 @@
+# Resume Builder - Docker Compose for local development
+# Usage: docker-compose up -d
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resume-builder
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source for hot reload during development
+      - ./src:/app/src:ro
+      # Mount user data directories
+      - ./data:/app/data:ro
+      - ./output:/app/output
+      # Mount config (if exists)
+      - ./config.local.json:/app/config.local.json:ro
+    environment:
+      # Application settings
+      - RESUME_BUILDER_ENV=development
+      - RESUME_BUILDER_DEBUG=true
+      # Anthropic API key (optional, for AI features)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Development service with hot reload
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resume-builder-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data:ro
+      - ./output:/app/output
+      - ./config.local.json:/app/config.local.json:ro
+    environment:
+      - RESUME_BUILDER_ENV=development
+      - RESUME_BUILDER_DEBUG=true
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    command: uvicorn resume_builder.main:app --host 0.0.0.0 --port 8000 --reload
+    profiles:
+      - dev
