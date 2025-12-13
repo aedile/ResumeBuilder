@@ -42,7 +42,7 @@ jobs:
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --extras dev
 
       - name: Run Ruff linting
         run: poetry run ruff check src/ tests/
@@ -74,7 +74,7 @@ jobs:
           version: latest
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --extras dev
 
       - name: Run Bandit security scan
         run: poetry run bandit -c pyproject.toml -r src/
@@ -114,7 +114,7 @@ jobs:
           version: latest
 
       - name: Install Python dependencies
-        run: poetry install
+        run: poetry install --extras dev
 
       - name: Run tests with coverage
         run: poetry run pytest --cov=src/resume_builder --cov-report=xml --cov-report=term-missing
