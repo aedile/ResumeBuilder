@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from datetime import date
 
+from typing import Optional
+
 from pydantic import BaseModel, computed_field
 
 
@@ -16,9 +18,9 @@ class Profile(BaseModel):
     first_name: str
     last_name: str
     headline: str
-    summary: str | None = None
-    industry: str | None = None
-    location: str | None = None
+    summary: Optional[str] = None
+    industry: Optional[str] = None
+    location: Optional[str] = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -33,9 +35,9 @@ class Position(BaseModel):
     company: str
     title: str
     start_date: date
-    end_date: date | None = None
-    description: str | None = None
-    location: str | None = None
+    end_date: Optional[date] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -69,16 +71,16 @@ class Education(BaseModel):
 
     school_name: str
     degree_name: str
-    start_year: int | None = None
-    end_year: int | None = None
-    activities: str | None = None
+    start_year: Optional[int] = None
+    end_year: Optional[int] = None
+    activities: Optional[str] = None
 
 
 class Skill(BaseModel):
     """Technical or soft skill."""
 
     name: str
-    category: str | None = None
+    category: Optional[str] = None
 
 
 class Certification(BaseModel):
@@ -86,9 +88,9 @@ class Certification(BaseModel):
 
     name: str
     authority: str
-    start_date: date | None = None
-    end_date: date | None = None
-    url: str | None = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    url: Optional[str] = None
 
 
 class Project(BaseModel):
@@ -96,7 +98,7 @@ class Project(BaseModel):
 
     title: str
     description: str
-    url: str | None = None
+    url: Optional[str] = None
 
 
 class Publication(BaseModel):
@@ -104,15 +106,15 @@ class Publication(BaseModel):
 
     title: str
     publisher: str
-    publication_date: date | None = None
-    url: str | None = None
+    publication_date: Optional[date] = None
+    url: Optional[str] = None
 
 
 class Language(BaseModel):
     """Language proficiency."""
 
     name: str
-    proficiency: str | None = None
+    proficiency: Optional[str] = None
 
 
 class Volunteer(BaseModel):
@@ -120,9 +122,9 @@ class Volunteer(BaseModel):
 
     organization: str
     role: str
-    cause: str | None = None
-    start_date: date | None = None
-    end_date: date | None = None
+    cause: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
 
 
 class Honor(BaseModel):
@@ -130,8 +132,8 @@ class Honor(BaseModel):
 
     title: str
     issuer: str
-    date: date | None = None
-    description: str | None = None
+    date: Optional[date] = None
+    description: Optional[str] = None
 
 
 class Resume(BaseModel):
