@@ -6,7 +6,6 @@ All models use Pydantic for validation, type safety, and JSON serialization.
 from __future__ import annotations
 
 from datetime import date
-
 from typing import Optional
 
 from pydantic import BaseModel, computed_field

@@ -91,6 +91,7 @@ select = [
 ignore = [
     "PLR0913",  # Too many arguments
     "PLR2004",  # Magic value comparison
+    "UP045",    # Use `X | None` - causes issues with Pydantic, prefer Optional[]
 ]
 
 [tool.ruff.lint.isort]
@@ -98,6 +99,9 @@ known-first-party = ["resume_builder"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*" = ["ARG", "PLR2004"]
+# TC003: These imports are used at runtime in Pydantic models and function args
+"src/resume_builder/models/**/*.py" = ["TC003"]
+"src/resume_builder/parsers/**/*.py" = ["TC003"]
 
 # =============================================================================
 # MyPy Configuration
