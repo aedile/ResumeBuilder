@@ -29,7 +29,7 @@ if [ ! -f "$CHECKLIST_FILE" ]; then
     echo "You must complete $CHECKLIST_FILE before committing to $TASK"
     echo ""
     echo "Steps:"
-    echo "  1. cp .recontextualization-template.md $CHECKLIST_FILE"
+    echo "  1. cp .git-hooks/checklist-template.md $CHECKLIST_FILE"
     echo "  2. Fill out ALL sections with EVIDENCE"
     echo "  3. git add $CHECKLIST_FILE"
     echo "  4. Commit checklist FIRST, then continue work"
