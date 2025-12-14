@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{# Modern style - sans-serif, whitespace, minimalist #}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Modern Style Overrides */
+    :root {
+        --color-primary: #2c3e50;
+        --color-secondary: #7f8c8d;
+        --color-text: #2c3e50;
+        --color-text-muted: #95a5a6;
+        --color-border: #ecf0f1;
+        --font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        --spacing-unit: 1.5rem;
+    }
+
+    body {
+        font-weight: 300;
+        letter-spacing: 0.3px;
+    }
+
+    h1 {
+        font-weight: 700;
+        font-size: 3rem;
+        letter-spacing: -1px;
+        margin-bottom: 0.25rem;
+    }
+
+    h2 {
+        font-weight: 300;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--color-secondary);
+    }
+
+    header {
+        border-bottom: none;
+        padding-bottom: calc(var(--spacing-unit) * 2);
+        margin-bottom: calc(var(--spacing-unit) * 3);
+    }
+
+    .headline {
+        font-size: 1.3rem;
+        font-weight: 200;
+        color: var(--color-secondary);
+    }
+
+    section {
+        margin-bottom: calc(var(--spacing-unit) * 3);
+    }
+
+    .item {
+        padding-left: 1rem;
+        border-left: 3px solid var(--color-border);
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}

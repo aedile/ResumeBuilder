@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{# Classic style - conservative, serif fonts, professional #}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Classic Style Overrides */
+    :root {
+        --color-primary: #1a1a1a;
+        --color-secondary: #333333;
+        --color-text: #000000;
+        --color-text-muted: #555555;
+        --color-border: #cccccc;
+        --font-family-sans: Georgia, 'Times New Roman', serif;
+        --font-family-serif: Georgia, 'Times New Roman', serif;
+    }
+
+    body {
+        font-family: var(--font-family-serif);
+        line-height: 1.8;
+    }
+
+    h1 {
+        font-family: var(--font-family-serif);
+        font-weight: 400;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-size: 2.2rem;
+    }
+
+    h2 {
+        font-family: var(--font-family-serif);
+        font-weight: 600;
+        font-size: 1.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    header {
+        border-bottom: 3px double var(--color-border);
+        text-align: center;
+    }
+
+    .headline {
+        font-style: italic;
+        font-size: 1.1rem;
+    }
+
+    .item-title {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

@@ -5,6 +5,7 @@ CONSTITUTION Priority 4: 90%+ Coverage
 CONSTITUTION Priority 9: WCAG 2.1 AA Accessibility
 """
 
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -31,8 +32,9 @@ def sample_resume_with_data() -> Resume:
         ),
         positions=[
             Position(
-                company_name="TechCorp",
+                company="TechCorp",
                 title="Senior Engineer",
+                start_date=date(2020, 1, 1),
                 description="Led development of scalable systems",
             )
         ],
