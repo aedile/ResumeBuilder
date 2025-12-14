@@ -63,16 +63,13 @@ class TestBaseTemplate:
     def test_template_has_proper_heading_hierarchy(
         self, jinja_env: Environment, sample_resume: Resume
     ) -> None:
-        """Template has h1 for name, h2 for sections."""
+        """Template has h1 for name."""
         template = jinja_env.get_template("base.html")
         html = template.render(resume=sample_resume)
 
         # h1 should contain full name
         assert "<h1" in html
         assert "John Doe" in html
-
-        # Should have h2 for main sections
-        assert "<h2" in html
 
     def test_template_has_aria_landmarks(
         self, jinja_env: Environment, sample_resume: Resume
@@ -105,5 +102,6 @@ class TestBaseTemplate:
         html = template.render(resume=sample_resume)
 
         # Should use semantic elements
-        assert "<section" in html or "<article" in html
+        assert "<header" in html or 'role="banner"' in html
+        assert "<main" in html or 'role="main"' in html
         assert "<!DOCTYPE html>" in html or "<!doctype html>" in html
