@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{# ATS style - plain, parseable, minimal styling for ATS systems #}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* ATS Style - Minimal for maximum parseability */
+    :root {
+        --color-primary: #000000;
+        --color-secondary: #000000;
+        --color-text: #000000;
+        --color-text-muted: #000000;
+        --color-border: #000000;
+        --font-family-sans: Arial, Helvetica, sans-serif;
+        --font-family-serif: Arial, Helvetica, sans-serif;
+        --spacing-unit: 0.75rem;
+    }
+
+    * {
+        /* Remove all complex styling that might confuse ATS */
+        background: white;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11pt;
+        line-height: 1.4;
+        color: #000000;
+        max-width: 8.5in;
+    }
+
+    h1 {
+        font-size: 16pt;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+
+    h2 {
+        font-size: 12pt;
+        font-weight: bold;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #000000;
+    }
+
+    header {
+        border-bottom: 2px solid #000000;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .headline {
+        font-size: 12pt;
+        font-weight: normal;
+    }
+
+    .item {
+        margin-bottom: 1rem;
+    }
+
+    .item-title {
+        font-weight: bold;
+        font-size: 11pt;
+    }
+
+    .item-subtitle {
+        font-weight: normal;
+        font-size: 11pt;
+    }
+
+    .item-meta {
+        font-size: 10pt;
+    }
+
+    ul {
+        margin-left: 20px;
+        list-style-type: disc;
+    }
+
+    /* Ensure no hidden content */
+    * {
+        opacity: 1;
+        visibility: visible;
+    }
+</style>
+{% endblock %}
