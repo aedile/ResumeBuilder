@@ -1,0 +1,66 @@
+#!/bin/bash
+# Pre-commit hook to enforce re-contextualization checklist
+# Blocks commits on feature branches without completed checklist
+
+set -e
+
+BRANCH=$(git branch --show-current)
+
+# Only enforce on feature branches
+if [[ ! $BRANCH =~ ^feat/ ]]; then
+    exit 0
+fi
+
+# Extract task ID from branch name (e.g., feat/P1-T09-description -> P1-T09)
+TASK=$(echo "$BRANCH" | grep -oE 'P[0-9]+-T[0-9]+' || true)
+
+if [ -z "$TASK" ]; then
+    echo "⚠️  Warning: Branch name doesn't follow pattern feat/PX-TXX-description"
+    echo "   Skipping re-contextualization check"
+    exit 0
+fi
+
+CHECKLIST_FILE=".recontextualization-${TASK}.md"
+
+# Check if checklist file exists
+if [ ! -f "$CHECKLIST_FILE" ]; then
+    echo "❌ BLOCKED: Missing re-contextualization checklist"
+    echo ""
+    echo "You must complete $CHECKLIST_FILE before committing to $TASK"
+    echo ""
+    echo "Steps:"
+    echo "  1. cp .recontextualization-template.md $CHECKLIST_FILE"
+    echo "  2. Fill out ALL sections with EVIDENCE"
+    echo "  3. git add $CHECKLIST_FILE"
+    echo "  4. Commit checklist FIRST, then continue work"
+    echo ""
+    exit 1
+fi
+
+# Check if checklist is committed
+if ! git ls-files | grep -q "$CHECKLIST_FILE"; then
+    echo "❌ BLOCKED: Checklist exists but is not committed"
+    echo ""
+    echo "You must commit $CHECKLIST_FILE before other commits:"
+    echo "  git add $CHECKLIST_FILE"
+    echo "  git commit -m 'chore: complete re-contextualization for $TASK'"
+    echo ""
+    exit 1
+fi
+
+# Validate checklist is filled out (not just template)
+UNCHECKED_COUNT=$(grep -c '^\- \[ \]' "$CHECKLIST_FILE" || true)
+INCOMPLETE_COUNT=$(grep -c '___' "$CHECKLIST_FILE" || true)
+
+if [ "$UNCHECKED_COUNT" -gt 3 ] || [ "$INCOMPLETE_COUNT" -gt 2 ]; then
+    echo "❌ BLOCKED: Checklist appears incomplete"
+    echo ""
+    echo "Found $UNCHECKED_COUNT unchecked items and $INCOMPLETE_COUNT blank fields"
+    echo "Please complete $CHECKLIST_FILE with actual evidence before committing"
+    echo ""
+    exit 1
+fi
+
+# All checks passed
+echo "✅ Re-contextualization checklist validated for $TASK"
+exit 0
