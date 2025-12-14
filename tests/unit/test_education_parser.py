@@ -4,7 +4,6 @@ CONSTITUTION Priority 3: TDD RED Phase
 CONSTITUTION Priority 4: 90%+ Coverage
 """
 
-from datetime import date
 from pathlib import Path
 
 import pytest
@@ -27,11 +26,11 @@ UC Berkeley,2006,2010,BS Mathematics,Undergraduate research
         education = parse_education(csv_file)
 
         assert len(education) == 2
-        assert education[0].school == "Stanford University"
-        assert education[0].degree == "MS Computer Science"
-        assert education[0].start_date == date(2010, 1, 1)
-        assert education[0].end_date == date(2012, 1, 1)
-        assert education[1].school == "UC Berkeley"
+        assert education[0].school_name == "Stanford University"
+        assert education[0].degree_name == "MS Computer Science"
+        assert education[0].start_year == 2010
+        assert education[0].end_year == 2012
+        assert education[1].school_name == "UC Berkeley"
 
     def test_parse_education_missing_file_returns_empty(self) -> None:
         """Return empty list when CSV file doesn't exist."""
@@ -71,7 +70,7 @@ MIT,2023,,PhD Computer Science,Currently pursuing doctorate
         education = parse_education(csv_file)
 
         assert len(education) == 1
-        assert education[0].end_date is None
+        assert education[0].end_year is None
 
     def test_parse_education_year_parsing(self, tmp_path: Path) -> None:
         """Parse year-only dates correctly."""
@@ -83,6 +82,6 @@ Test University,2015,2019,BS Degree,Test activities
 
         education = parse_education(csv_file)
 
-        # Year-only should parse as January 1st of that year
-        assert education[0].start_date == date(2015, 1, 1)
-        assert education[0].end_date == date(2019, 1, 1)
+        # Year-only should parse as integers
+        assert education[0].start_year == 2015
+        assert education[0].end_year == 2019
