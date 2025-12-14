@@ -16,12 +16,7 @@ from resume_builder.models.resume import Profile, Resume
 @pytest.fixture
 def jinja_env() -> Environment:
     """Create Jinja2 environment with template directory."""
-    template_dir = (
-        Path(__file__).parent.parent.parent
-        / "src"
-        / "resume_builder"
-        / "templates"
-    )
+    template_dir = Path(__file__).parent.parent.parent / "src" / "resume_builder" / "templates"
     return Environment(loader=FileSystemLoader(str(template_dir)))
 
 
@@ -49,9 +44,7 @@ def sample_resume() -> Resume:
 class TestBaseTemplate:
     """Tests for base HTML template."""
 
-    def test_base_template_renders(
-        self, jinja_env: Environment, sample_resume: Resume
-    ) -> None:
+    def test_base_template_renders(self, jinja_env: Environment, sample_resume: Resume) -> None:
         """Base template renders without Jinja errors."""
         template = jinja_env.get_template("base.html")
         html = template.render(resume=sample_resume)
@@ -84,9 +77,7 @@ class TestBaseTemplate:
         # Header with contact info
         assert 'role="banner"' in html or "<header" in html
 
-    def test_template_has_print_styles(
-        self, jinja_env: Environment, sample_resume: Resume
-    ) -> None:
+    def test_template_has_print_styles(self, jinja_env: Environment, sample_resume: Resume) -> None:
         """Template includes print media query styles."""
         template = jinja_env.get_template("base.html")
         html = template.render(resume=sample_resume)
