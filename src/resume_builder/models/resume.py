@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, computed_field, model_validator
 
 
 class Profile(BaseModel):
@@ -157,7 +157,11 @@ class Honor(BaseModel):
 
 
 class Resume(BaseModel):
-    """Complete resume aggregate model."""
+    """Complete resume aggregate model.
+
+    positions is always ordered by start_date descending (newest first),
+    regardless of the order in which positions are supplied at construction.
+    """
 
     profile: Profile
     positions: list[Position] = []
@@ -170,8 +174,8 @@ class Resume(BaseModel):
     volunteer: list[Volunteer] = []
     honors: list[Honor] = []
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def sorted_positions(self) -> list[Position]:
-        """Get positions sorted by start date (most recent first)."""
-        return sorted(self.positions, key=lambda p: p.start_date, reverse=True)
+    @model_validator(mode="after")
+    def _sort_positions(self) -> Resume:
+        """Sort positions by start_date descending (newest first) at construction."""
+        self.positions = sorted(self.positions, key=lambda p: p.start_date, reverse=True)
+        return self
