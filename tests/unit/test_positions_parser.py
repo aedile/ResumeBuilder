@@ -84,12 +84,13 @@ Line 3",Remote,2020-01,2021-01
         assert len(positions) == 1
         assert "Line 1\nLine 2\nLine 3" in positions[0].description
 
-    def test_parse_positions_file_not_found(self) -> None:
-        """Raise FileNotFoundError if CSV doesn't exist."""
+    def test_parse_positions_missing_file_returns_empty_list(self) -> None:
+        """Return empty list when CSV file does not exist (graceful degradation)."""
         nonexistent = Path("/nonexistent/positions.csv")
 
-        with pytest.raises(FileNotFoundError, match="Positions CSV not found"):
-            parse_positions(nonexistent)
+        result = parse_positions(nonexistent)
+
+        assert result == []
 
     def test_parse_positions_invalid_csv(self, tmp_path: Path) -> None:
         """Handle malformed CSV gracefully."""
