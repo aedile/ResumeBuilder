@@ -110,17 +110,89 @@ class TestPosition:
         assert current.is_current is True
         assert past.is_current is False
 
-    def test_position_duration_property(self) -> None:
-        """Position has a duration string property."""
+    def test_position_duration_exactly_two_years(self) -> None:
+        """Duration returns 'N years' when months remainder is zero."""
         position = Position(
             company="TechCorp",
             title="Engineer",
             start_date=date(2020, 1, 1),
             end_date=date(2022, 1, 1),
         )
-        # Should return something like "2 years" or "Jan 2020 - Jan 2022"
-        assert position.duration is not None
-        assert isinstance(position.duration, str)
+        assert position.duration == "2 years"
+
+    def test_position_duration_years_and_months(self) -> None:
+        """Duration returns 'N years M months' when both are non-zero."""
+        position = Position(
+            company="TechCorp",
+            title="Engineer",
+            start_date=date(2020, 1, 1),
+            end_date=date(2022, 4, 1),
+        )
+        assert position.duration == "2 years 3 months"
+
+    def test_position_duration_months_only(self) -> None:
+        """Duration returns 'N months' when under one year."""
+        position = Position(
+            company="TechCorp",
+            title="Engineer",
+            start_date=date(2022, 3, 1),
+            end_date=date(2022, 9, 1),
+        )
+        assert position.duration == "6 months"
+
+    def test_position_duration_negative_months_rollover(self) -> None:
+        """Duration handles month subtraction correctly when crossing a year boundary."""
+        # March 2020 -> January 2021: 10 months (not 1 year -2 months)
+        position = Position(
+            company="TechCorp",
+            title="Engineer",
+            start_date=date(2020, 3, 1),
+            end_date=date(2021, 1, 1),
+        )
+        assert position.duration == "10 months"
+
+    def test_position_duration_less_than_one_month(self) -> None:
+        """Duration returns 'Less than 1 month' for very short stints."""
+        position = Position(
+            company="TechCorp",
+            title="Engineer",
+            start_date=date(2022, 3, 1),
+            end_date=date(2022, 3, 15),
+        )
+        assert position.duration == "Less than 1 month"
+
+    def test_position_duration_current_returns_elapsed_time(self) -> None:
+        """Duration for a current position returns elapsed time, not a date range."""
+        # Start far enough back that we know there's meaningful elapsed time.
+        position = Position(
+            company="TechCorp",
+            title="Engineer",
+            start_date=date(2020, 1, 1),
+        )
+        # Must NOT look like a date range (the old broken behaviour).
+        assert " - Present" not in position.duration
+        assert " - " not in position.duration
+        # Must look like a duration (contains "years" or "months").
+        assert "years" in position.duration or "months" in position.duration
+
+    def test_position_date_range_ended_position(self) -> None:
+        """date_range returns 'Mon YYYY - Mon YYYY' for ended positions."""
+        position = Position(
+            company="TechCorp",
+            title="Engineer",
+            start_date=date(2020, 3, 1),
+            end_date=date(2022, 1, 1),
+        )
+        assert position.date_range == "Mar 2020 - Jan 2022"
+
+    def test_position_date_range_current_position(self) -> None:
+        """date_range returns 'Mon YYYY - Present' for current positions."""
+        position = Position(
+            company="TechCorp",
+            title="Engineer",
+            start_date=date(2020, 3, 1),
+        )
+        assert position.date_range == "Mar 2020 - Present"
 
 
 class TestEducation:
