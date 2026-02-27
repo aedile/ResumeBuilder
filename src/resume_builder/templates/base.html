@@ -136,6 +136,9 @@
     <header role="banner">
         <h1>{{ resume.profile.full_name }}</h1>
         <p class="headline">{{ resume.profile.headline }}</p>
+        {% if resume.profile.location %}
+        <p class="location">{{ resume.profile.location }}</p>
+        {% endif %}
     </header>
 
     <!-- Main content -->

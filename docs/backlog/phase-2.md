@@ -908,4 +908,47 @@ def mock_anthropic(mocker):
     return mock
 ```
 
+---
+
+## P2-T11: Add Full Contact Information to Generated Documents
+
+**Description**: Extend all resume generators (HTML, PDF, DOCX) to render email address, phone number, and LinkedIn profile URL in the document header alongside the existing name, headline, and location fields. Phase 1 parsers only populate `Profile` from LinkedIn's `Profile.csv`, which does not include contact details. This task requires a design decision on how contact info flows into generators.
+
+**Status**: Not Started
+
+**Added**: 2026-02-27 (identified during Phase 1 review)
+
+### Design Options
+
+Two viable approaches — choose one before implementation:
+
+**Option A: Add `Optional[ContactInfo]` to `Resume` model**
+- Pro: Contact info travels with the resume object; generators need no API changes
+- Con: Couples `Resume` (a data model) to `ContactInfo` (a config concern)
+- Implementation: Add `contact_info: Optional[ContactInfo] = None` to `Resume`; parsers populate it from `config.local.json` via `AppConfig`
+
+**Option B: Pass contact info as a separate generator parameter**
+- Pro: Clean separation — `Resume` stays pure LinkedIn data; generators accept optional enrichment
+- Con: All generator signatures change; `GeneratorProtocol` must be updated
+- Implementation: `generate(resume, style, contact_info=None)`; update `GeneratorProtocol`
+
+**Recommendation**: Option A — simpler call sites, protocol unchanged, consistent with how `Resume` already aggregates data from multiple sources.
+
+### Acceptance Criteria
+
+- [ ] Design decision documented in an ADR (`docs/adr/`)
+- [ ] `ContactInfo` model (or equivalent) accessible to generators
+- [ ] `base.html` renders email, phone, LinkedIn URL in header (conditional on presence)
+- [ ] `DOCXGenerator._add_header` renders email, phone, LinkedIn URL (conditional)
+- [ ] All new fields are optional — generators must not break when absent
+- [ ] XSS protection: email/phone/URL escaped in HTML (Jinja2 autoescape covers this)
+- [ ] Existing tests continue to pass (no regressions)
+- [ ] New tests: location + contact info rendered when present, absent when None
+- [ ] 90%+ coverage maintained
+
+### Dependencies
+
+- Phase 1 complete ✅
+- `AppConfig` / `ContactInfo` model (exists in `src/resume_builder/models/config.py`)
+
 Use fixtures from `tests/fixtures/api_responses/` for realistic mock responses.

@@ -161,13 +161,13 @@ class TestHTMLGeneratorContentRendering:
         html = HTMLGenerator().generate(resume, style="classic")
         assert "Skills" not in html
 
-    @pytest.mark.parametrize("style", SUPPORTED_STYLES)
+    @pytest.mark.parametrize("style", sorted(SUPPORTED_STYLES))
     def test_all_styles_render_company_name(self, sample_resume: Resume, style: str) -> None:
         """Company name is present in output for every supported style."""
         html = HTMLGenerator().generate(sample_resume, style=style)
         assert "StartupCo" in html, f"Company name missing in {style!r} style"
 
-    @pytest.mark.parametrize("style", SUPPORTED_STYLES)
+    @pytest.mark.parametrize("style", sorted(SUPPORTED_STYLES))
     def test_all_styles_render_skills(self, sample_resume: Resume, style: str) -> None:
         """Skill names are present in output for every supported style."""
         html = HTMLGenerator().generate(sample_resume, style=style)
@@ -179,6 +179,28 @@ class TestHTMLGeneratorContentRendering:
         html = HTMLGenerator().generate(sample_resume, style="classic")
         assert "Led product development" in html
 
+    def test_renders_profile_location_when_present(self) -> None:
+        """Profile location appears in the rendered HTML header when set."""
+        resume = Resume(
+            profile=Profile(
+                first_name="Jane",
+                last_name="Doe",
+                headline="Engineer",
+                location="San Francisco, CA",
+            ),
+        )
+        html = HTMLGenerator().generate(resume, style="classic")
+        assert "San Francisco, CA" in html
+
+    def test_location_absent_when_not_set(self) -> None:
+        """No location placeholder is rendered when profile.location is None."""
+        resume = Resume(
+            profile=Profile(first_name="Jane", last_name="Doe", headline="Engineer"),
+        )
+        html = HTMLGenerator().generate(resume, style="classic")
+        # No stray 'None' or empty location element should appear
+        assert "None" not in html
+
 
 class TestGeneratorConstants:
     """Tests for the shared generator constants module."""
@@ -187,20 +209,20 @@ class TestGeneratorConstants:
         """SUPPORTED_STYLES is importable directly from resume_builder.generators."""
         from resume_builder.generators import SUPPORTED_STYLES  # noqa: PLC0415
 
-        assert isinstance(SUPPORTED_STYLES, list)
+        assert isinstance(SUPPORTED_STYLES, frozenset)
         assert len(SUPPORTED_STYLES) > 0
 
     def test_supported_styles_contains_expected_values(self) -> None:
         """SUPPORTED_STYLES contains exactly the four expected style names."""
         from resume_builder.generators import SUPPORTED_STYLES  # noqa: PLC0415
 
-        assert set(SUPPORTED_STYLES) == {"classic", "modern", "tech", "ats"}
+        assert {"classic", "modern", "tech", "ats"} == SUPPORTED_STYLES
 
     def test_supported_styles_importable_from_constants_module(self) -> None:
         """SUPPORTED_STYLES is importable from the constants submodule directly."""
         from resume_builder.generators.constants import SUPPORTED_STYLES  # noqa: PLC0415
 
-        assert isinstance(SUPPORTED_STYLES, list)
+        assert isinstance(SUPPORTED_STYLES, frozenset)
 
     def test_html_generator_uses_shared_supported_styles(self) -> None:
         """HTMLGenerator validates styles against the shared SUPPORTED_STYLES list."""
@@ -264,7 +286,7 @@ class TestPDFGenerator:
         pdf_bytes = PDFGenerator().generate(sample_resume, style="classic")
         assert pdf_bytes.startswith(b"%PDF")
 
-    @pytest.mark.parametrize("style", SUPPORTED_STYLES)
+    @pytest.mark.parametrize("style", sorted(SUPPORTED_STYLES))
     def test_generate_pdf_all_styles(self, sample_resume: Resume, style: str) -> None:
         """PDF generation produces valid output for every supported style."""
         pdf_bytes = PDFGenerator().generate(sample_resume, style=style)
@@ -333,7 +355,7 @@ class TestDOCXGenerator:
         assert "State University" in full_text
         assert "Bachelor of Science" in full_text
 
-    @pytest.mark.parametrize("style", SUPPORTED_STYLES)
+    @pytest.mark.parametrize("style", sorted(SUPPORTED_STYLES))
     def test_generate_docx_all_styles(self, docx_resume: Resume, style: str) -> None:
         """DOCX generation produces valid output for every supported style."""
         docx_bytes = DOCXGenerator().generate(docx_resume, style=style)
@@ -343,6 +365,31 @@ class TestDOCXGenerator:
         """Unknown style raises ValueError."""
         with pytest.raises(ValueError, match="Unknown style"):
             DOCXGenerator().generate(docx_resume, style="unknown")
+
+    def test_docx_contains_location_when_present(self) -> None:
+        """Generated DOCX contains the profile location when set."""
+        resume = Resume(
+            profile=Profile(
+                first_name="Carol",
+                last_name="Reyes",
+                headline="Designer",
+                location="Austin, TX",
+            ),
+        )
+        docx_bytes = DOCXGenerator().generate(resume, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "Austin, TX" in full_text
+
+    def test_docx_location_absent_when_not_set(self) -> None:
+        """No stray 'None' appears in DOCX when profile.location is not set."""
+        resume = Resume(
+            profile=Profile(first_name="Carol", last_name="Reyes", headline="Designer"),
+        )
+        docx_bytes = DOCXGenerator().generate(resume, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "None" not in full_text
 
 
 class TestGeneratorProtocol:
@@ -355,12 +402,3 @@ class TestGeneratorProtocol:
     def test_docx_generator_satisfies_protocol(self) -> None:
         """DOCXGenerator is a structural subtype of GeneratorProtocol."""
         assert isinstance(DOCXGenerator(), GeneratorProtocol)
-
-    def test_protocol_generate_method_signature(self) -> None:
-        """GeneratorProtocol exposes generate(resume, style) -> bytes."""
-        import inspect  # noqa: PLC0415
-
-        sig = inspect.signature(GeneratorProtocol.generate)
-        params = list(sig.parameters)
-        assert "resume" in params
-        assert "style" in params

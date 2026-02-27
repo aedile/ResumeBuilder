@@ -33,7 +33,7 @@ class DOCXGenerator:
         """
         if style not in SUPPORTED_STYLES:
             raise ValueError(
-                f"Unknown style: {style}. Supported styles: {', '.join(SUPPORTED_STYLES)}"
+                f"Unknown style: {style}. Supported styles: {', '.join(sorted(SUPPORTED_STYLES))}"
             )
 
         doc = Document()
@@ -60,6 +60,9 @@ class DOCXGenerator:
         for run in headline_para.runs:
             run.font.size = Pt(13)
             run.italic = True
+
+        if resume.profile.location:
+            doc.add_paragraph(resume.profile.location)
 
         if resume.profile.summary:
             doc.add_paragraph(resume.profile.summary)

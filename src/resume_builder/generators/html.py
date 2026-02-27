@@ -39,7 +39,7 @@ class HTMLGenerator:
         """
         if style not in SUPPORTED_STYLES:
             raise ValueError(
-                f"Unknown style: {style}. Supported styles: {', '.join(SUPPORTED_STYLES)}"
+                f"Unknown style: {style}. Supported styles: {', '.join(sorted(SUPPORTED_STYLES))}"
             )
 
         template_name = f"{style}.html"

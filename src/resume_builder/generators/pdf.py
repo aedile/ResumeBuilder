@@ -41,7 +41,7 @@ class PDFGenerator:
         """
         if style not in SUPPORTED_STYLES:
             raise ValueError(
-                f"Unknown style: {style}. Supported styles: {', '.join(SUPPORTED_STYLES)}"
+                f"Unknown style: {style}. Supported styles: {', '.join(sorted(SUPPORTED_STYLES))}"
             )
 
         html_content = self.html_generator.generate(resume, style=style)
