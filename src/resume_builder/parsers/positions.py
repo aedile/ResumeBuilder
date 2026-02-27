@@ -61,10 +61,9 @@ def parse_positions(csv_path: Path) -> list[Position]:
 
     Returns:
         List of Position models sorted by start_date (newest first).
-        Returns empty list if CSV has no position rows.
+        Returns empty list if file is missing or CSV has no position rows.
 
     Raises:
-        FileNotFoundError: If CSV file doesn't exist.
         ValueError: If CSV is malformed or missing required fields.
 
     Examples:
@@ -73,7 +72,7 @@ def parse_positions(csv_path: Path) -> list[Position]:
         'TechVision AI'
     """
     if not csv_path.exists():
-        raise FileNotFoundError(f"Positions CSV not found: {csv_path}")
+        return []
 
     with csv_path.open("r", encoding="utf-8") as f:
         reader = csv.DictReader(f)

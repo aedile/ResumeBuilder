@@ -59,21 +59,9 @@ def parse_linkedin_export(export_path: Path) -> Resume:
     # Parse required Profile
     profile = parse_profile(profile_csv)
 
-    # Parse all optional CSVs
-    # P1-T04/T05/T06 parsers raise FileNotFoundError for missing files
-    # P1-T07 parsers return empty lists for missing files
-    # Catch exceptions for uniform behavior
-    try:
-        positions = parse_positions(export_path / "Positions.csv")
-    except FileNotFoundError:
-        positions = []
-
-    try:
-        skills = parse_skills(export_path / "Skills.csv")
-    except FileNotFoundError:
-        skills = []
-
-    # P1-T07 parsers return empty list if file missing
+    # Parse all optional CSVs — all return [] if the file is missing
+    positions = parse_positions(export_path / "Positions.csv")
+    skills = parse_skills(export_path / "Skills.csv")
     education = parse_education(export_path / "Education.csv")
     certifications = parse_certifications(export_path / "Certifications.csv")
     projects = parse_projects(export_path / "Projects.csv")

@@ -118,10 +118,9 @@ def parse_skills(csv_path: Path, categorize: bool = False) -> list[Skill]:
 
     Returns:
         List of Skill models with duplicates removed.
-        Returns empty list if CSV has no skill rows.
+        Returns empty list if file is missing or CSV has no skill rows.
 
     Raises:
-        FileNotFoundError: If CSV file doesn't exist.
         ValueError: If CSV is malformed or missing required fields.
 
     Examples:
@@ -133,7 +132,7 @@ def parse_skills(csv_path: Path, categorize: bool = False) -> list[Skill]:
         'Programming Languages'
     """
     if not csv_path.exists():
-        raise FileNotFoundError(f"Skills CSV not found: {csv_path}")
+        return []
 
     with csv_path.open("r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
