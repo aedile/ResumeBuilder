@@ -9,6 +9,7 @@ from datetime import date
 
 import pytest
 
+from resume_builder.generators import SUPPORTED_STYLES
 from resume_builder.generators.html import HTMLGenerator
 from resume_builder.models.resume import Position, Profile, Resume, Skill
 
@@ -25,7 +26,7 @@ def sample_resume() -> Resume:
         positions=[
             Position(
                 company="StartupCo",
-                title="Product Manager",
+                title="Senior PM",
                 start_date=date(2021, 3, 1),
                 description="Led product development",
             )
@@ -59,24 +60,21 @@ class TestHTMLGenerator:
 
     def test_generate_html_modern(self, sample_resume: Resume) -> None:
         """Generates valid HTML with modern style."""
-        generator = HTMLGenerator()
-        html = generator.generate(sample_resume, style="modern")
+        html = HTMLGenerator().generate(sample_resume, style="modern")
 
         assert html
         assert "Alice Johnson" in html
 
     def test_generate_html_tech(self, sample_resume: Resume) -> None:
         """Generates valid HTML with tech style."""
-        generator = HTMLGenerator()
-        html = generator.generate(sample_resume, style="tech")
+        html = HTMLGenerator().generate(sample_resume, style="tech")
 
         assert html
         assert "Alice Johnson" in html
 
     def test_generate_html_ats(self, sample_resume: Resume) -> None:
         """Generates valid HTML with ATS style."""
-        generator = HTMLGenerator()
-        html = generator.generate(sample_resume, style="ats")
+        html = HTMLGenerator().generate(sample_resume, style="ats")
 
         assert html
         assert "Alice Johnson" in html
@@ -95,6 +93,86 @@ class TestHTMLGenerator:
 
         assert "<header" in html or 'role="banner"' in html
         assert "<main" in html or 'role="main"' in html
+
+
+class TestHTMLGeneratorContentRendering:
+    """HTMLGenerator renders all resume content faithfully and safely."""
+
+    def test_renders_position_company_name(self, sample_resume: Resume) -> None:
+        """Position company name appears in the rendered HTML output."""
+        html = HTMLGenerator().generate(sample_resume, style="classic")
+        assert "StartupCo" in html
+
+    def test_renders_position_title(self, sample_resume: Resume) -> None:
+        """Position title (distinct from profile headline) appears in output."""
+        html = HTMLGenerator().generate(sample_resume, style="classic")
+        assert "Senior PM" in html
+
+    def test_renders_position_date_range(self, sample_resume: Resume) -> None:
+        """Position start month/year and 'Present' appear for a current position."""
+        html = HTMLGenerator().generate(sample_resume, style="classic")
+        assert "March 2021" in html
+        assert "Present" in html
+
+    def test_renders_skill_names(self, sample_resume: Resume) -> None:
+        """All skill names appear in the rendered HTML output."""
+        html = HTMLGenerator().generate(sample_resume, style="classic")
+        assert "Product Management" in html
+        assert "Agile" in html
+
+    def test_renders_section_headings(self, sample_resume: Resume) -> None:
+        """Experience and Skills section headings appear when data is present."""
+        html = HTMLGenerator().generate(sample_resume, style="classic")
+        assert "Professional Experience" in html
+        assert "Skills" in html
+
+    def test_escapes_html_in_user_content(self) -> None:
+        """HTML in user-supplied fields is escaped to prevent XSS injection."""
+        resume = Resume(
+            profile=Profile(
+                first_name="<script>alert('xss')</script>",
+                last_name="Test",
+                headline="Engineer",
+            ),
+        )
+        html = HTMLGenerator().generate(resume, style="classic")
+
+        assert "<script>" not in html
+        assert "&lt;script&gt;" in html
+
+    def test_empty_positions_section_omitted(self) -> None:
+        """Professional Experience section is absent when the resume has no positions."""
+        resume = Resume(
+            profile=Profile(first_name="Jane", last_name="Smith", headline="Designer"),
+        )
+        html = HTMLGenerator().generate(resume, style="classic")
+        assert "Professional Experience" not in html
+
+    def test_empty_skills_section_omitted(self) -> None:
+        """Skills section is absent when the resume has no skills."""
+        resume = Resume(
+            profile=Profile(first_name="Jane", last_name="Smith", headline="Designer"),
+        )
+        html = HTMLGenerator().generate(resume, style="classic")
+        assert "Skills" not in html
+
+    @pytest.mark.parametrize("style", SUPPORTED_STYLES)
+    def test_all_styles_render_company_name(self, sample_resume: Resume, style: str) -> None:
+        """Company name is present in output for every supported style."""
+        html = HTMLGenerator().generate(sample_resume, style=style)
+        assert "StartupCo" in html, f"Company name missing in {style!r} style"
+
+    @pytest.mark.parametrize("style", SUPPORTED_STYLES)
+    def test_all_styles_render_skills(self, sample_resume: Resume, style: str) -> None:
+        """Skill names are present in output for every supported style."""
+        html = HTMLGenerator().generate(sample_resume, style=style)
+        assert "Product Management" in html, f"Skill 'Product Management' missing in {style!r}"
+        assert "Agile" in html, f"Skill 'Agile' missing in {style!r}"
+
+    def test_position_description_rendered(self, sample_resume: Resume) -> None:
+        """Position description text appears in the rendered output."""
+        html = HTMLGenerator().generate(sample_resume, style="classic")
+        assert "Led product development" in html
 
 
 class TestGeneratorConstants:
