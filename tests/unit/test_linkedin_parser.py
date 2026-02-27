@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from resume_builder.exceptions import ExportNotFoundError, InvalidExportError, ResumeBuilderError
 from resume_builder.models.resume import Resume
 from resume_builder.parsers.linkedin import parse_linkedin_export
 
@@ -57,17 +58,29 @@ class TestLinkedInParserOrchestrator:
         assert resume.education == []
         assert resume.skills == []
 
-    def test_parse_missing_profile_raises_error(self, tmp_path: Path) -> None:
-        """Raise error if required Profile.csv is missing."""
+    def test_parse_missing_profile_raises_invalid_export_error(self, tmp_path: Path) -> None:
+        """Raise InvalidExportError if required Profile.csv is missing."""
         # No Profile.csv
         (tmp_path / "Skills.csv").write_text("Name\nPython\n", encoding="utf-8")
 
-        with pytest.raises(FileNotFoundError, match=r"Profile\.csv is required"):
+        with pytest.raises(InvalidExportError, match=r"Profile\.csv is required"):
             parse_linkedin_export(tmp_path)
 
-    def test_parse_invalid_directory_raises_error(self) -> None:
-        """Raise error if directory doesn't exist."""
+    def test_parse_invalid_directory_raises_export_not_found_error(self) -> None:
+        """Raise ExportNotFoundError if directory doesn't exist."""
         nonexistent = Path("/nonexistent/linkedin/export")
 
-        with pytest.raises(FileNotFoundError, match="Directory not found"):
+        with pytest.raises(ExportNotFoundError, match="Directory not found"):
             parse_linkedin_export(nonexistent)
+
+    def test_export_not_found_is_resume_builder_error(self) -> None:
+        """ExportNotFoundError is catchable as ResumeBuilderError."""
+        nonexistent = Path("/nonexistent/linkedin/export")
+
+        with pytest.raises(ResumeBuilderError):
+            parse_linkedin_export(nonexistent)
+
+    def test_invalid_export_is_resume_builder_error(self, tmp_path: Path) -> None:
+        """InvalidExportError is catchable as ResumeBuilderError."""
+        with pytest.raises(ResumeBuilderError):
+            parse_linkedin_export(tmp_path)
