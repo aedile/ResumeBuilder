@@ -25,10 +25,31 @@ class TestContactInfo:
         assert contact.email == "test@example.com"
         assert contact.phone == "555-1234"
 
-    def test_contact_info_invalid_email(self) -> None:
-        """ContactInfo rejects invalid email."""
+    def test_contact_info_invalid_email_no_at(self) -> None:
+        """ContactInfo rejects address with no @ sign."""
         with pytest.raises(ValidationError):
             ContactInfo(email="not-an-email")
+
+    def test_contact_info_invalid_email_no_tld(self) -> None:
+        """ContactInfo rejects address with no TLD (e.g. user@localhost)."""
+        with pytest.raises(ValidationError):
+            ContactInfo(email="user@localhost")
+
+    def test_contact_info_invalid_email_missing_local(self) -> None:
+        """ContactInfo rejects address with empty local part (@domain.com)."""
+        with pytest.raises(ValidationError):
+            ContactInfo(email="@example.com")
+
+    def test_contact_info_invalid_email_spaces(self) -> None:
+        """ContactInfo rejects address containing spaces."""
+        with pytest.raises(ValidationError):
+            ContactInfo(email="user name@example.com")
+
+    def test_contact_info_email_domain_is_normalized(self) -> None:
+        """ContactInfo normalizes the email domain to lowercase (RFC 5321)."""
+        contact = ContactInfo(email="User@Example.COM")
+        # Domain portion must be lowercased; local part is case-preserved per RFC 5321.
+        assert contact.email.endswith("@example.com")
 
 
 class TestUserPreferences:
