@@ -4,14 +4,12 @@ CONSTITUTION Priority 5: Type hints, docstrings
 CONSTITUTION Priority 9: WCAG 2.1 AA Accessibility
 """
 
-from pathlib import Path
+import importlib.resources
 
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
+from resume_builder.generators.constants import SUPPORTED_STYLES
 from resume_builder.models.resume import Resume
-
-# Supported styles
-SUPPORTED_STYLES = ["classic", "modern", "tech", "ats"]
 
 
 class HTMLGenerator:
@@ -19,7 +17,7 @@ class HTMLGenerator:
 
     def __init__(self) -> None:
         """Initialize HTMLGenerator with template environment."""
-        template_dir = Path(__file__).parent.parent / "templates"
+        template_dir = importlib.resources.files("resume_builder") / "templates"
         self.env = Environment(
             loader=FileSystemLoader(str(template_dir)),
             autoescape=True,  # Prevent XSS

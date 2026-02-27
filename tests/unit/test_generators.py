@@ -1,4 +1,4 @@
-"""Tests for HTML generator.
+"""Tests for HTML generator and generator constants.
 
 CONSTITUTION Priority 3: TDD RED Phase
 CONSTITUTION Priority 4: 90%+ Coverage
@@ -95,3 +95,33 @@ class TestHTMLGenerator:
 
         assert "<header" in html or 'role="banner"' in html
         assert "<main" in html or 'role="main"' in html
+
+
+class TestGeneratorConstants:
+    """Tests for the shared generator constants module."""
+
+    def test_supported_styles_importable_from_generators_package(self) -> None:
+        """SUPPORTED_STYLES is importable directly from resume_builder.generators."""
+        from resume_builder.generators import SUPPORTED_STYLES  # noqa: PLC0415
+
+        assert isinstance(SUPPORTED_STYLES, list)
+        assert len(SUPPORTED_STYLES) > 0
+
+    def test_supported_styles_contains_expected_values(self) -> None:
+        """SUPPORTED_STYLES contains exactly the four expected style names."""
+        from resume_builder.generators import SUPPORTED_STYLES  # noqa: PLC0415
+
+        assert set(SUPPORTED_STYLES) == {"classic", "modern", "tech", "ats"}
+
+    def test_supported_styles_importable_from_constants_module(self) -> None:
+        """SUPPORTED_STYLES is importable from the constants submodule directly."""
+        from resume_builder.generators.constants import SUPPORTED_STYLES  # noqa: PLC0415
+
+        assert isinstance(SUPPORTED_STYLES, list)
+
+    def test_html_generator_uses_shared_supported_styles(self) -> None:
+        """HTMLGenerator validates styles against the shared SUPPORTED_STYLES list."""
+        from resume_builder.generators import SUPPORTED_STYLES  # noqa: PLC0415
+        from resume_builder.generators.html import SUPPORTED_STYLES as HTML_STYLES  # noqa: PLC0415
+
+        assert SUPPORTED_STYLES is HTML_STYLES
