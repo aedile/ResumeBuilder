@@ -352,8 +352,8 @@ class TestResume:
         assert len(resume.skills) == 1
         assert len(resume.education) == 1
 
-    def test_resume_positions_sorted_by_date(self) -> None:
-        """Resume positions should be sorted with most recent first."""
+    def test_resume_positions_always_sorted_by_date(self) -> None:
+        """resume.positions is always sorted newest-first regardless of insertion order."""
         profile = Profile(
             first_name="Jane",
             last_name="Doe",
@@ -371,11 +371,23 @@ class TestResume:
             start_date=date(2020, 1, 1),
         )
 
+        # Insert in oldest-first order — positions should still come out newest-first.
         resume = Resume(
             profile=profile,
             positions=[old_position, new_position],
         )
 
-        # Most recent first
-        assert resume.sorted_positions[0].company == "NewCorp"
-        assert resume.sorted_positions[1].company == "OldCorp"
+        assert resume.positions[0].company == "NewCorp"
+        assert resume.positions[1].company == "OldCorp"
+
+    def test_resume_positions_sorted_three_entries(self) -> None:
+        """Sorting works correctly for three positions in arbitrary insertion order."""
+        profile = Profile(first_name="A", last_name="B", headline="C")
+        positions = [
+            Position(company="Mid", title="E", start_date=date(2017, 6, 1), end_date=date(2019, 1, 1)),
+            Position(company="New", title="E", start_date=date(2021, 1, 1)),
+            Position(company="Old", title="E", start_date=date(2012, 1, 1), end_date=date(2015, 1, 1)),
+        ]
+        resume = Resume(profile=profile, positions=positions)
+
+        assert [p.company for p in resume.positions] == ["New", "Mid", "Old"]
