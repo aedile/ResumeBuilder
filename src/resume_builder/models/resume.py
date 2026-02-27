@@ -47,22 +47,43 @@ class Position(BaseModel):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def duration(self) -> str:
-        """Calculate human-readable duration."""
+        """Calculate human-readable elapsed time for this position.
+
+        Always returns a duration string (e.g. "2 years 3 months") regardless
+        of whether the position is current or ended.  For current positions,
+        elapsed time is computed relative to today.
+
+        Returns:
+            Human-readable duration string.
+
+        """
+        end = self.end_date if self.end_date else date.today()
+        years = end.year - self.start_date.year
+        months = end.month - self.start_date.month
+        if months < 0:
+            years -= 1
+            months += 12
+        if years > 0 and months > 0:
+            return f"{years} years {months} months"
+        elif years > 0:
+            return f"{years} years"
+        elif months > 0:
+            return f"{months} months"
+        return "Less than 1 month"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def date_range(self) -> str:
+        """Format start and end dates as a display range string.
+
+        Returns:
+            Date range string, e.g. "Mar 2020 - Jan 2022" or "Mar 2020 - Present".
+
+        """
+        start = self.start_date.strftime("%b %Y")
         if self.end_date:
-            years = self.end_date.year - self.start_date.year
-            months = self.end_date.month - self.start_date.month
-            if months < 0:
-                years -= 1
-                months += 12
-            if years > 0 and months > 0:
-                return f"{years} years {months} months"
-            elif years > 0:
-                return f"{years} years"
-            elif months > 0:
-                return f"{months} months"
-            return "Less than 1 month"
-        else:
-            return self.start_date.strftime("%b %Y") + " - Present"
+            return f"{start} - {self.end_date.strftime('%b %Y')}"
+        return f"{start} - Present"
 
 
 class Education(BaseModel):
