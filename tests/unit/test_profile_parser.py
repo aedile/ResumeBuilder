@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from resume_builder.exceptions import ParseError, ResumeBuilderError
 from resume_builder.models.resume import Profile
 from resume_builder.parsers.profile import parse_profile
 
@@ -57,15 +58,28 @@ class TestProfileParser:
         assert profile.industry is None
         assert profile.location is None
 
-    def test_parse_profile_file_not_found(self) -> None:
-        """Parser raises FileNotFoundError for missing file."""
-        with pytest.raises(FileNotFoundError):
+    def test_parse_profile_file_not_found_raises_parse_error(self) -> None:
+        """Parser raises ParseError for missing file."""
+        with pytest.raises(ParseError):
             parse_profile(Path("nonexistent.csv"))
 
-    def test_parse_profile_invalid_csv(self, tmp_path: Path) -> None:
-        """Parser raises ValueError for invalid CSV format."""
+    def test_parse_profile_empty_csv_raises_parse_error(self, tmp_path: Path) -> None:
+        """Parser raises ParseError for CSV with no data rows."""
         csv_file = tmp_path / "Profile.csv"
         csv_file.write_text("Invalid,CSV,Data\n")
 
-        with pytest.raises(ValueError, match="empty"):
+        with pytest.raises(ParseError, match="empty"):
             parse_profile(csv_file)
+
+    def test_parse_profile_missing_fields_raises_parse_error(self, tmp_path: Path) -> None:
+        """Parser raises ParseError when required fields are absent from row."""
+        csv_file = tmp_path / "Profile.csv"
+        csv_file.write_text("First Name,Last Name,Headline\n,,\n")
+
+        with pytest.raises(ParseError, match="Missing required fields"):
+            parse_profile(csv_file)
+
+    def test_parse_error_is_resume_builder_error(self) -> None:
+        """ParseError is catchable as ResumeBuilderError."""
+        with pytest.raises(ResumeBuilderError):
+            parse_profile(Path("nonexistent.csv"))

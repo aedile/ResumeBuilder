@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from resume_builder.exceptions import ParseError
 from resume_builder.parsers.positions import _parse_linkedin_date, parse_positions
 
 
@@ -92,13 +93,13 @@ Line 3",Remote,2020-01,2021-01
 
         assert result == []
 
-    def test_parse_positions_invalid_csv(self, tmp_path: Path) -> None:
-        """Handle malformed CSV gracefully."""
+    def test_parse_positions_invalid_csv_raises_parse_error(self, tmp_path: Path) -> None:
+        """Raise ParseError for CSV missing required headers."""
         csv_content = "Not a valid CSV\nMissing headers"
         csv_file = tmp_path / "positions.csv"
         csv_file.write_text(csv_content, encoding="utf-8")
 
-        with pytest.raises(ValueError, match="Missing required fields"):
+        with pytest.raises(ParseError, match="Missing required fields"):
             parse_positions(csv_file)
 
     def test_parse_positions_empty_csv(self, tmp_path: Path) -> None:
