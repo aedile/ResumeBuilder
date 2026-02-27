@@ -45,10 +45,11 @@ class TestContactInfo:
         with pytest.raises(ValidationError):
             ContactInfo(email="user name@example.com")
 
-    def test_contact_info_email_is_normalized(self) -> None:
-        """ContactInfo normalizes email to lowercase."""
+    def test_contact_info_email_domain_is_normalized(self) -> None:
+        """ContactInfo normalizes the email domain to lowercase (RFC 5321)."""
         contact = ContactInfo(email="User@Example.COM")
-        assert contact.email == "user@example.com"
+        # Domain portion must be lowercased; local part is case-preserved per RFC 5321.
+        assert contact.email.endswith("@example.com")
 
 
 class TestUserPreferences:

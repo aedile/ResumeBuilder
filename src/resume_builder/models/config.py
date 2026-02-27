@@ -2,22 +2,14 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field
 
 
 class ContactInfo(BaseModel):
     """User contact information."""
 
-    email: str
+    email: EmailStr
     phone: str | None = None
-
-    @field_validator("email")
-    @classmethod
-    def validate_email(cls, v: str) -> str:
-        """Basic email validation."""
-        if "@" not in v or "." not in v.split("@")[1]:
-            raise ValueError("Invalid email format")
-        return v
 
 
 class UserPreferences(BaseModel):
