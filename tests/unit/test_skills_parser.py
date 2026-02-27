@@ -62,12 +62,13 @@ javascript
 
         assert skills == []
 
-    def test_parse_skills_file_not_found(self) -> None:
-        """Raise FileNotFoundError if CSV doesn't exist."""
+    def test_parse_skills_missing_file_returns_empty_list(self) -> None:
+        """Return empty list when CSV file does not exist (graceful degradation)."""
         nonexistent = Path("/nonexistent/skills.csv")
 
-        with pytest.raises(FileNotFoundError, match="Skills CSV not found"):
-            parse_skills(nonexistent)
+        result = parse_skills(nonexistent)
+
+        assert result == []
 
     def test_parse_skills_invalid_csv(self, tmp_path: Path) -> None:
         """Handle malformed CSV gracefully."""
