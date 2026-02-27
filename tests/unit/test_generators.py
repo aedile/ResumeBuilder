@@ -157,9 +157,7 @@ class TestHTMLGeneratorContentRendering:
         assert "Skills" not in html
 
     @pytest.mark.parametrize("style", SUPPORTED_STYLES)
-    def test_all_styles_render_company_name(
-        self, sample_resume: Resume, style: str
-    ) -> None:
+    def test_all_styles_render_company_name(self, sample_resume: Resume, style: str) -> None:
         """Company name is present in output for every supported style."""
         html = HTMLGenerator().generate(sample_resume, style=style)
         assert "StartupCo" in html, f"Company name missing in {style!r} style"
