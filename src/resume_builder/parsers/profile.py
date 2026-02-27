@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
+from resume_builder.exceptions import ParseError
 from resume_builder.models.resume import Profile
 
 
@@ -18,18 +19,17 @@ def parse_profile(csv_path: Path) -> Profile:
         Profile model with parsed data.
 
     Raises:
-        FileNotFoundError: If CSV file doesn't exist.
-        ValueError: If CSV is malformed or missing required fields.
+        ParseError: If CSV file doesn't exist, is empty, or is missing required fields.
     """
     if not csv_path.exists():
-        raise FileNotFoundError(f"Profile CSV not found: {csv_path}")
+        raise ParseError(f"Profile CSV not found: {csv_path}")
 
     with csv_path.open("r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
 
         if not rows:
-            raise ValueError("Profile CSV is empty")
+            raise ParseError("Profile CSV is empty")
 
         row = rows[0]  # Profile.csv has only one row
 
@@ -37,7 +37,7 @@ def parse_profile(csv_path: Path) -> Profile:
         required_fields = ["First Name", "Last Name", "Headline"]
         missing = [f for f in required_fields if f not in row or not row[f]]
         if missing:
-            raise ValueError(f"Missing required fields: {', '.join(missing)}")
+            raise ParseError(f"Missing required fields: {', '.join(missing)}")
 
         # Extract fields with fallback for optional
         return Profile(

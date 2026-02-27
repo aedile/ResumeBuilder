@@ -6,6 +6,7 @@ import csv
 from datetime import date
 from pathlib import Path
 
+from resume_builder.exceptions import ParseError
 from resume_builder.models.resume import Position
 
 
@@ -87,7 +88,7 @@ def parse_positions(csv_path: Path) -> list[Position]:
             first_row = rows[0]
             missing = [f for f in required_fields if f not in first_row]
             if missing:
-                raise ValueError(f"Missing required fields: {', '.join(missing)}")
+                raise ParseError(f"Missing required fields: {', '.join(missing)}")
 
         positions = []
         for row in rows:

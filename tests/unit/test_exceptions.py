@@ -36,13 +36,19 @@ class TestExceptionHierarchy:
 
     def test_export_not_found_inherits_from_base(self) -> None:
         """ExportNotFoundError is a subclass of ResumeBuilderError."""
-        from resume_builder.exceptions import ExportNotFoundError, ResumeBuilderError  # noqa: PLC0415
+        from resume_builder.exceptions import (  # noqa: PLC0415
+            ExportNotFoundError,
+            ResumeBuilderError,
+        )
 
         assert issubclass(ExportNotFoundError, ResumeBuilderError)
 
     def test_invalid_export_inherits_from_base(self) -> None:
         """InvalidExportError is a subclass of ResumeBuilderError."""
-        from resume_builder.exceptions import InvalidExportError, ResumeBuilderError  # noqa: PLC0415
+        from resume_builder.exceptions import (  # noqa: PLC0415
+            InvalidExportError,
+            ResumeBuilderError,
+        )
 
         assert issubclass(InvalidExportError, ResumeBuilderError)
 
@@ -118,14 +124,20 @@ class TestExceptionCatchability:
 
     def test_export_not_found_catchable_as_base(self) -> None:
         """ExportNotFoundError instance is caught by ResumeBuilderError handler."""
-        from resume_builder.exceptions import ExportNotFoundError, ResumeBuilderError  # noqa: PLC0415
+        from resume_builder.exceptions import (  # noqa: PLC0415
+            ExportNotFoundError,
+            ResumeBuilderError,
+        )
 
         with pytest.raises(ResumeBuilderError):
             raise ExportNotFoundError("test")
 
     def test_invalid_export_catchable_as_base(self) -> None:
         """InvalidExportError instance is caught by ResumeBuilderError handler."""
-        from resume_builder.exceptions import InvalidExportError, ResumeBuilderError  # noqa: PLC0415
+        from resume_builder.exceptions import (  # noqa: PLC0415
+            InvalidExportError,
+            ResumeBuilderError,
+        )
 
         with pytest.raises(ResumeBuilderError):
             raise InvalidExportError("test")

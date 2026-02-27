@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from resume_builder.exceptions import ExportNotFoundError, InvalidExportError
 from resume_builder.models.resume import Resume
 from resume_builder.parsers.certifications import parse_certifications
 from resume_builder.parsers.education import parse_education
@@ -35,7 +36,8 @@ def parse_linkedin_export(export_path: Path) -> Resume:
          Complete Resume object with all available data.
 
      Raises:
-         FileNotFoundError: If directory doesn't exist or Profile.csv is missing.
+         ExportNotFoundError: If directory doesn't exist.
+         InvalidExportError: If Profile.csv is missing from the export directory.
 
     Examples:
          >>> resume = parse_linkedin_export(Path("linkedin_export"))
@@ -45,7 +47,7 @@ def parse_linkedin_export(export_path: Path) -> Resume:
          5
     """
     if not export_path.exists():
-        raise FileNotFoundError(f"Directory not found: {export_path}")
+        raise ExportNotFoundError(f"Directory not found: {export_path}")
 
     if not export_path.is_dir():
         msg = "ZIP file support not yet implemented"
@@ -54,7 +56,7 @@ def parse_linkedin_export(export_path: Path) -> Resume:
     # Profile.csv is required
     profile_csv = export_path / "Profile.csv"
     if not profile_csv.exists():
-        raise FileNotFoundError("Profile.csv is required in LinkedIn export")
+        raise InvalidExportError("Profile.csv is required in LinkedIn export")
 
     # Parse required Profile
     profile = parse_profile(profile_csv)
