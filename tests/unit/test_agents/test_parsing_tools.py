@@ -140,7 +140,7 @@ class TestExtractImplicitSkillsTool:
         """extract_implicit_skills matches skills case-insensitively."""
         result = extract_implicit_skills(text="PYTHON and DOCKER were used.")
         skills = json.loads(result)
-        assert len(skills) >= 2  # noqa: PLR2004
+        assert len(skills) >= 2
 
     def test_empty_text_returns_empty_list(self) -> None:
         """extract_implicit_skills returns empty list for empty text."""
@@ -169,7 +169,9 @@ class TestExtractImplicitSkillsTool:
 
     def test_finds_docker_in_text(self) -> None:
         """extract_implicit_skills finds Docker from tools category."""
-        result = extract_implicit_skills(text="Containerized applications using Docker and Kubernetes.")
+        result = extract_implicit_skills(
+            text="Containerized applications using Docker and Kubernetes."
+        )
         skills = json.loads(result)
         assert "docker" in [s.lower() for s in skills]
 

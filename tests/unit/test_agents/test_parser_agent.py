@@ -62,7 +62,7 @@ class TestParserAgentInit:
     def test_parser_agent_registers_four_tools(self, mock_client: MagicMock) -> None:
         """ParserAgent registers exactly four parsing tools."""
         agent = ParserAgent(client=mock_client)
-        assert len(agent._tools) == 4  # noqa: PLR2004
+        assert len(agent._tools) == 4
 
     def test_parser_agent_has_parse_csv_tool(self, mock_client: MagicMock) -> None:
         """ParserAgent registers the parse_csv tool."""
@@ -92,7 +92,7 @@ class TestParserAgentInit:
         """ParserAgent defines a non-empty SYSTEM_PROMPT class attribute."""
         assert hasattr(ParserAgent, "SYSTEM_PROMPT")
         assert isinstance(ParserAgent.SYSTEM_PROMPT, str)
-        assert len(ParserAgent.SYSTEM_PROMPT) > 50  # noqa: PLR2004
+        assert len(ParserAgent.SYSTEM_PROMPT) > 50
 
     def test_parser_agent_tool_handlers_registered(self, mock_client: MagicMock) -> None:
         """ParserAgent tool names map to callable handlers."""
@@ -162,4 +162,4 @@ class TestParserAgentParse:
         await agent.parse({"profile": "csv"})
         call_args = mock_client.messages.create.call_args
         assert "system" in call_args.kwargs
-        assert ParserAgent.SYSTEM_PROMPT == call_args.kwargs["system"]
+        assert call_args.kwargs["system"] == ParserAgent.SYSTEM_PROMPT
