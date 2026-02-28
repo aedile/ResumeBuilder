@@ -16,6 +16,7 @@ from resume_builder.generators.docx import DOCXGenerator
 from resume_builder.generators.html import HTMLGenerator
 from resume_builder.generators.pdf import PDFGenerator
 from resume_builder.generators.protocol import GeneratorProtocol
+from resume_builder.models.config import ContactInfo
 from resume_builder.models.resume import Education, Position, Profile, Resume, Skill
 
 
@@ -402,3 +403,183 @@ class TestGeneratorProtocol:
     def test_docx_generator_satisfies_protocol(self) -> None:
         """DOCXGenerator is a structural subtype of GeneratorProtocol."""
         assert isinstance(DOCXGenerator(), GeneratorProtocol)
+
+
+# ---------------------------------------------------------------------------
+# P2-T11: Contact info rendering tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def resume_with_contact() -> Resume:
+    """Resume fixture with full contact info for header rendering tests."""
+    return Resume(
+        profile=Profile(
+            first_name="Dana",
+            last_name="Rivera",
+            headline="Data Scientist",
+        ),
+        contact_info=ContactInfo(
+            email="dana.rivera@example.com",
+            phone="555-0199",
+            linkedin_url="https://linkedin.com/in/danarivera",
+        ),
+    )
+
+
+@pytest.fixture
+def resume_without_contact() -> Resume:
+    """Resume fixture with no contact info."""
+    return Resume(
+        profile=Profile(
+            first_name="Dana",
+            last_name="Rivera",
+            headline="Data Scientist",
+        ),
+    )
+
+
+class TestHTMLContactInfoRendering:
+    """HTML generator renders contact info fields in the header (P2-T11)."""
+
+    def test_html_renders_email_when_contact_present(self, resume_with_contact: Resume) -> None:
+        """Email address appears in HTML when contact_info is set."""
+        html = HTMLGenerator().generate(resume_with_contact, style="classic")
+        assert "dana.rivera@example.com" in html
+
+    def test_html_email_is_mailto_link(self, resume_with_contact: Resume) -> None:
+        """Email is rendered as a mailto: hyperlink."""
+        html = HTMLGenerator().generate(resume_with_contact, style="classic")
+        assert "mailto:dana.rivera@example.com" in html
+
+    def test_html_renders_phone_when_present(self, resume_with_contact: Resume) -> None:
+        """Phone number appears in HTML when contact_info.phone is set."""
+        html = HTMLGenerator().generate(resume_with_contact, style="classic")
+        assert "555-0199" in html
+
+    def test_html_phone_is_tel_link(self, resume_with_contact: Resume) -> None:
+        """Phone is rendered as a tel: hyperlink."""
+        html = HTMLGenerator().generate(resume_with_contact, style="classic")
+        assert "tel:555-0199" in html
+
+    def test_html_renders_linkedin_url_when_present(self, resume_with_contact: Resume) -> None:
+        """LinkedIn URL appears in HTML when contact_info.linkedin_url is set."""
+        html = HTMLGenerator().generate(resume_with_contact, style="classic")
+        assert "https://linkedin.com/in/danarivera" in html
+
+    def test_html_linkedin_link_has_aria_label(self, resume_with_contact: Resume) -> None:
+        """LinkedIn link has an aria-label for screen reader accessibility."""
+        html = HTMLGenerator().generate(resume_with_contact, style="classic")
+        assert "aria-label" in html
+        assert "LinkedIn" in html
+
+    def test_html_contact_absent_when_none(self, resume_without_contact: Resume) -> None:
+        """No contact info appears when contact_info is None."""
+        html = HTMLGenerator().generate(resume_without_contact, style="classic")
+        assert "mailto:" not in html
+        assert "tel:" not in html
+
+    def test_html_phone_absent_when_not_set(self) -> None:
+        """Phone is not rendered when contact_info.phone is None."""
+        resume = Resume(
+            profile=Profile(first_name="Dana", last_name="R", headline="Dev"),
+            contact_info=ContactInfo(email="dana@example.com"),
+        )
+        html = HTMLGenerator().generate(resume, style="classic")
+        assert "tel:" not in html
+        assert "dana@example.com" in html
+
+    def test_html_linkedin_absent_when_not_set(self) -> None:
+        """LinkedIn link not rendered when contact_info.linkedin_url is None."""
+        resume = Resume(
+            profile=Profile(first_name="Dana", last_name="R", headline="Dev"),
+            contact_info=ContactInfo(email="dana@example.com"),
+        )
+        html = HTMLGenerator().generate(resume, style="classic")
+        assert "linkedin.com" not in html
+
+    def test_html_contact_no_none_literal_without_contact(
+        self, resume_without_contact: Resume
+    ) -> None:
+        """No stray 'None' appears in the rendered HTML when contact_info is absent."""
+        html = HTMLGenerator().generate(resume_without_contact, style="classic")
+        assert "None" not in html
+
+    @pytest.mark.parametrize("style", sorted(SUPPORTED_STYLES))
+    def test_all_styles_render_email(self, resume_with_contact: Resume, style: str) -> None:
+        """Email renders across all supported styles."""
+        html = HTMLGenerator().generate(resume_with_contact, style=style)
+        assert "dana.rivera@example.com" in html, f"Email missing in {style!r}"
+
+
+class TestDOCXContactInfoRendering:
+    """DOCX generator renders contact info fields in the header (P2-T11)."""
+
+    def test_docx_renders_email_when_contact_present(self, resume_with_contact: Resume) -> None:
+        """Email address appears in DOCX when contact_info is set."""
+        docx_bytes = DOCXGenerator().generate(resume_with_contact, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "dana.rivera@example.com" in full_text
+
+    def test_docx_renders_phone_when_present(self, resume_with_contact: Resume) -> None:
+        """Phone number appears in DOCX when contact_info.phone is set."""
+        docx_bytes = DOCXGenerator().generate(resume_with_contact, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "555-0199" in full_text
+
+    def test_docx_renders_linkedin_url_when_present(self, resume_with_contact: Resume) -> None:
+        """LinkedIn URL appears in DOCX when contact_info.linkedin_url is set."""
+        docx_bytes = DOCXGenerator().generate(resume_with_contact, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "linkedin.com/in/danarivera" in full_text
+
+    def test_docx_contact_absent_when_none(self, resume_without_contact: Resume) -> None:
+        """No contact info appears in DOCX when contact_info is None."""
+        docx_bytes = DOCXGenerator().generate(resume_without_contact, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "@example.com" not in full_text
+        assert "None" not in full_text
+
+    def test_docx_phone_absent_when_not_set(self) -> None:
+        """Phone not rendered in DOCX when contact_info.phone is None."""
+        resume = Resume(
+            profile=Profile(first_name="Dana", last_name="R", headline="Dev"),
+            contact_info=ContactInfo(email="dana@example.com"),
+        )
+        docx_bytes = DOCXGenerator().generate(resume, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "555" not in full_text
+
+    def test_docx_linkedin_absent_when_not_set(self) -> None:
+        """LinkedIn URL not rendered in DOCX when contact_info.linkedin_url is None."""
+        resume = Resume(
+            profile=Profile(first_name="Dana", last_name="R", headline="Dev"),
+            contact_info=ContactInfo(email="dana@example.com"),
+        )
+        docx_bytes = DOCXGenerator().generate(resume, style="classic")
+        doc = Document(BytesIO(docx_bytes))
+        full_text = "\n".join(p.text for p in doc.paragraphs)
+        assert "linkedin.com" not in full_text
+
+
+class TestResumeContactInfoModel:
+    """Resume model accepts optional contact_info field (P2-T11)."""
+
+    def test_resume_contact_info_defaults_to_none(self) -> None:
+        """Resume.contact_info is None when not provided."""
+        resume = Resume(profile=Profile(first_name="A", last_name="B", headline="C"))
+        assert resume.contact_info is None
+
+    def test_resume_accepts_contact_info(self) -> None:
+        """Resume accepts a ContactInfo object."""
+        resume = Resume(
+            profile=Profile(first_name="A", last_name="B", headline="C"),
+            contact_info=ContactInfo(email="ab@example.com"),
+        )
+        assert resume.contact_info is not None
+        assert resume.contact_info.email == "ab@example.com"

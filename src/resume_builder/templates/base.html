@@ -139,6 +139,17 @@
         {% if resume.profile.location %}
         <p class="location">{{ resume.profile.location }}</p>
         {% endif %}
+        {% if resume.contact_info %}
+        <p class="contact-info">
+            <a href="mailto:{{ resume.contact_info.email }}">{{ resume.contact_info.email }}</a>
+            {% if resume.contact_info.phone %}
+            | <a href="tel:{{ resume.contact_info.phone }}">{{ resume.contact_info.phone }}</a>
+            {% endif %}
+            {% if resume.contact_info.linkedin_url %}
+            | <a href="{{ resume.contact_info.linkedin_url }}" aria-label="LinkedIn profile">LinkedIn</a>
+            {% endif %}
+        </p>
+        {% endif %}
     </header>
 
     <!-- Main content -->

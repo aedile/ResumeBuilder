@@ -10,6 +10,8 @@ from typing import Optional
 
 from pydantic import BaseModel, computed_field, model_validator
 
+from resume_builder.models.config import ContactInfo
+
 
 class Profile(BaseModel):
     """Personal profile information."""
@@ -161,9 +163,16 @@ class Resume(BaseModel):
 
     positions is always ordered by start_date descending (newest first),
     regardless of the order in which positions are supplied at construction.
+
+    Args:
+        profile: Required personal profile (name, headline, location).
+        contact_info: Optional contact details (email, phone, LinkedIn URL).
+            When present, generators render it in the document header.
+        positions: Work experience, sorted newest-first on construction.
     """
 
     profile: Profile
+    contact_info: ContactInfo | None = None
     positions: list[Position] = []
     education: list[Education] = []
     skills: list[Skill] = []
