@@ -49,7 +49,7 @@ class DOCXGenerator:
         return output.getvalue()
 
     def _add_header(self, doc: DocumentType, resume: Resume, heading_font: str) -> None:
-        """Add name, headline, and optional summary to document."""
+        """Add name, headline, contact info, and optional summary to document."""
         title = doc.add_heading(resume.profile.full_name, level=1)
         for run in title.runs:
             run.font.name = heading_font
@@ -63,6 +63,14 @@ class DOCXGenerator:
 
         if resume.profile.location:
             doc.add_paragraph(resume.profile.location)
+
+        if resume.contact_info:
+            parts: list[str] = [str(resume.contact_info.email)]
+            if resume.contact_info.phone:
+                parts.append(resume.contact_info.phone)
+            if resume.contact_info.linkedin_url:
+                parts.append(resume.contact_info.linkedin_url)
+            doc.add_paragraph(" | ".join(parts))
 
         if resume.profile.summary:
             doc.add_paragraph(resume.profile.summary)

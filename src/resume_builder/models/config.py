@@ -6,10 +6,17 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class ContactInfo(BaseModel):
-    """User contact information."""
+    """User contact information.
+
+    Args:
+        email: Validated email address.
+        phone: Optional phone number (any format accepted).
+        linkedin_url: Optional LinkedIn profile URL.
+    """
 
     email: EmailStr
     phone: str | None = None
+    linkedin_url: str | None = None
 
 
 class UserPreferences(BaseModel):
