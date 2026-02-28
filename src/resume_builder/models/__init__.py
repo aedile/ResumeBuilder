@@ -10,6 +10,7 @@ from .agent import (
     ToolResult,
 )
 from .match import JobDescription, MatchReport
+from .optimizer import OptimizedResume
 from .resume import (
     Certification,
     Education,
@@ -34,6 +35,7 @@ __all__ = [
     "JobDescription",
     "Language",
     "MatchReport",
+    "OptimizedResume",
     "Position",
     "Profile",
     "Project",
