@@ -1,5 +1,14 @@
 """Resume Builder data models package."""
 
+from .agent import (
+    AgentMessage,
+    AgentResponse,
+    AgentState,
+    TokenUsage,
+    ToolCall,
+    ToolDefinition,
+    ToolResult,
+)
 from .resume import (
     Certification,
     Education,
@@ -15,6 +24,9 @@ from .resume import (
 )
 
 __all__ = [
+    "AgentMessage",
+    "AgentResponse",
+    "AgentState",
     "Certification",
     "Education",
     "Honor",
@@ -25,5 +37,9 @@ __all__ = [
     "Publication",
     "Resume",
     "Skill",
+    "TokenUsage",
+    "ToolCall",
+    "ToolDefinition",
+    "ToolResult",
     "Volunteer",
 ]
