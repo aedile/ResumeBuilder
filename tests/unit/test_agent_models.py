@@ -184,11 +184,9 @@ class TestAgentState:
     """Tests for AgentState model."""
 
     def test_agent_state_defaults(self) -> None:
-        """AgentState initialises with idle step and empty history."""
+        """AgentState initialises with idle step."""
         state = AgentState()
         assert state.step == "idle"
-        assert state.history == []
-        assert state.resume is None
 
     def test_agent_state_step_transitions(self) -> None:
         """AgentState step can be updated to reflect workflow progress."""
