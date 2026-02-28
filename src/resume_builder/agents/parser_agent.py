@@ -119,9 +119,7 @@ class ParserAgent(BaseAgent):
         try:
             return Resume.model_validate(resume_data)
         except (ValidationError, TypeError) as exc:
-            raise ParseError(
-                f"ParserAgent response does not match Resume schema: {exc}"
-            ) from exc
+            raise ParseError(f"ParserAgent response does not match Resume schema: {exc}") from exc
 
     async def _send_with_system(self, content: str) -> Any:
         """Send a message with the parser system prompt.
