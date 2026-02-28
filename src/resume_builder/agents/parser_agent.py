@@ -28,7 +28,6 @@ from resume_builder.agents.tools.parsing import (
     validate_data,
 )
 from resume_builder.exceptions import ParseError
-from resume_builder.models.agent import AgentResponse, TokenUsage
 from resume_builder.models.resume import Resume
 
 
@@ -78,6 +77,7 @@ class ParserAgent(BaseAgent):
                 max_tokens, timeout, max_retries).
         """
         super().__init__(**kwargs)
+        self.system_prompt = self.SYSTEM_PROMPT
         self.register_tool(PARSE_CSV_TOOL, parse_csv)
         self.register_tool(NORMALIZE_DATES_TOOL, normalize_dates)
         self.register_tool(EXTRACT_IMPLICIT_SKILLS_TOOL, extract_implicit_skills)
@@ -106,7 +106,7 @@ class ParserAgent(BaseAgent):
             + json.dumps(linkedin_data, indent=2)
         )
 
-        response = await self._send_with_system(prompt)
+        response = await self.send_message(prompt)
 
         try:
             resume_data: dict[str, Any] = json.loads(response.content)
@@ -120,48 +120,3 @@ class ParserAgent(BaseAgent):
             return Resume.model_validate(resume_data)
         except (ValidationError, TypeError) as exc:
             raise ParseError(f"ParserAgent response does not match Resume schema: {exc}") from exc
-
-    async def _send_with_system(self, content: str) -> Any:
-        """Send a message with the parser system prompt.
-
-        Wraps ``send_message`` to inject the SYSTEM_PROMPT on the API call.
-        The base class ``_do_send`` is overridden temporarily via a subclass
-        hook — instead, we call the client directly here to pass ``system``.
-
-        Args:
-            content: User message text.
-
-        Returns:
-            ``AgentResponse`` from the model's final turn.
-        """
-        self.message_history.append({"role": "user", "content": content})
-
-        tools_payload: list[dict[str, Any]] = [t.model_dump() for t in self._tools]
-
-        response = self.client.messages.create(  # type: ignore[call-overload]
-            # Runtime-valid MessageParam/ToolParam dicts; same justification as
-            # base.py — mypy cannot resolve conditional **kwargs against overloads.
-            model=self.model,
-            max_tokens=self.max_tokens,
-            system=self.SYSTEM_PROMPT,
-            messages=self.message_history,
-            **({"tools": tools_payload} if tools_payload else {}),
-        )
-
-        self.token_usage.add(
-            TokenUsage(
-                input_tokens=response.usage.input_tokens,
-                output_tokens=response.usage.output_tokens,
-            )
-        )
-
-        self.message_history.append({"role": "assistant", "content": response.content})
-
-        if response.stop_reason == "tool_use":
-            return await self._handle_tool_calls(response)
-
-        text = next(
-            (block.text for block in response.content if hasattr(block, "text")),
-            "",
-        )
-        return AgentResponse(content=text, stop_reason=response.stop_reason)

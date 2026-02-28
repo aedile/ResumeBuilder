@@ -196,7 +196,7 @@ class TestIdentifyGapsTool:
         required_skills = json.dumps(["python", "sql"])
         result = identify_gaps(resume_skills=resume_skills, required_skills=required_skills)
         gaps = json.loads(result)
-        assert len(gaps) == 2  # noqa: PLR2004
+        assert len(gaps) == 2
 
     def test_returns_json_string(self) -> None:
         """identify_gaps always returns a valid JSON string."""
@@ -245,13 +245,11 @@ class TestRankExperienceTool:
         keywords = json.dumps(["python"])
         result = rank_experience(positions=positions, keywords=keywords)
         ranked = json.loads(result)
-        assert len(ranked) == 3  # noqa: PLR2004
+        assert len(ranked) == 3
 
     def test_includes_match_score(self) -> None:
         """rank_experience includes a relevance score for each position."""
-        positions = json.dumps(
-            [{"title": "Engineer", "description": "Python and SQL developer"}]
-        )
+        positions = json.dumps([{"title": "Engineer", "description": "Python and SQL developer"}])
         keywords = json.dumps(["python"])
         result = rank_experience(positions=positions, keywords=keywords)
         ranked = json.loads(result)

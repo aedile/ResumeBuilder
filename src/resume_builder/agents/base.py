@@ -56,6 +56,7 @@ class BaseAgent:
         self._tool_handlers: dict[str, Callable[..., Any]] = {}
         self.message_history: list[dict[str, Any]] = []
         self.token_usage: TokenUsage = TokenUsage()
+        self.system_prompt: str | None = None
 
     def register_tool(self, tool_def: ToolDefinition, handler: Callable[..., Any]) -> None:
         """Register a tool that the model may invoke during a conversation.
@@ -131,6 +132,7 @@ class BaseAgent:
             max_tokens=self.max_tokens,
             messages=self.message_history,
             **({"tools": tools_payload} if tools_payload else {}),
+            **({"system": self.system_prompt} if self.system_prompt is not None else {}),
         )
 
         self.token_usage.add(

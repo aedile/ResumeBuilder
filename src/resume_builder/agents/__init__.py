@@ -4,6 +4,7 @@ Contains the multi-agent system built on Claude's native tool_use capabilities.
 """
 
 from resume_builder.agents.base import BaseAgent
+from resume_builder.agents.matcher_agent import MatcherAgent
 from resume_builder.agents.parser_agent import ParserAgent
 
-__all__ = ["BaseAgent", "ParserAgent"]
+__all__ = ["BaseAgent", "MatcherAgent", "ParserAgent"]

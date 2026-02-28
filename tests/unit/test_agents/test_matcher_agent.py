@@ -12,6 +12,7 @@ from unittest.mock import MagicMock
 
 import anthropic
 import pytest
+from pydantic import ValidationError
 
 from resume_builder.agents.base import BaseAgent
 from resume_builder.agents.matcher_agent import MatcherAgent
@@ -84,7 +85,7 @@ class TestMatcherAgentInit:
     def test_matcher_agent_registers_four_tools(self, mock_client: MagicMock) -> None:
         """MatcherAgent registers exactly four matching tools."""
         agent = MatcherAgent(client=mock_client)
-        assert len(agent._tools) == 4  # noqa: PLR2004
+        assert len(agent._tools) == 4
 
     def test_matcher_agent_has_extract_requirements_tool(self, mock_client: MagicMock) -> None:
         """MatcherAgent registers the extract_requirements tool."""
@@ -110,7 +111,7 @@ class TestMatcherAgentInit:
         """MatcherAgent defines a non-empty SYSTEM_PROMPT class attribute."""
         assert hasattr(MatcherAgent, "SYSTEM_PROMPT")
         assert isinstance(MatcherAgent.SYSTEM_PROMPT, str)
-        assert len(MatcherAgent.SYSTEM_PROMPT) > 50  # noqa: PLR2004
+        assert len(MatcherAgent.SYSTEM_PROMPT) > 50
 
     def test_matcher_agent_all_handlers_callable(self, mock_client: MagicMock) -> None:
         """MatcherAgent tool names all map to callable handlers."""
@@ -136,7 +137,7 @@ class TestMatcherAgentAnalyze:
         """analyze() returns a MatchReport with overall_score from API response."""
         agent = MatcherAgent(client=mock_client)
         result = await agent.analyze(sample_resume, sample_job)
-        assert result.overall_score == 85  # noqa: PLR2004
+        assert result.overall_score == 85
 
     async def test_analyze_populates_gaps(
         self, mock_client: MagicMock, sample_resume: Resume, sample_job: JobDescription
@@ -198,15 +199,11 @@ class TestJobDescriptionModel:
 
     def test_job_description_requires_title(self) -> None:
         """JobDescription requires a title field."""
-        from pydantic import ValidationError
-
         with pytest.raises(ValidationError):
             JobDescription(description="Text only")  # type: ignore[call-arg]
 
     def test_job_description_requires_description(self) -> None:
         """JobDescription requires a description field."""
-        from pydantic import ValidationError
-
         with pytest.raises(ValidationError):
             JobDescription(title="Engineer")  # type: ignore[call-arg]
 
@@ -246,7 +243,7 @@ class TestMatchReportModel:
     def test_match_report_score_range(self) -> None:
         """MatchReport overall_score is set correctly."""
         report = MatchReport(overall_score=75)
-        assert report.overall_score == 75  # noqa: PLR2004
+        assert report.overall_score == 75
 
     def test_match_report_full_construction(self) -> None:
         """MatchReport accepts all fields."""
@@ -257,14 +254,14 @@ class TestMatchReportModel:
             recommendations=["Learn Kubernetes"],
             ranked_positions=["Senior Engineer at Acme"],
         )
-        assert report.overall_score == 85  # noqa: PLR2004
+        assert report.overall_score == 85
         assert "kubernetes" in report.gaps
 
     def test_match_report_serializes_to_json(self) -> None:
         """MatchReport serializes to JSON via model_dump_json."""
         report = MatchReport(overall_score=70, gaps=["docker"])
         data = json.loads(report.model_dump_json())
-        assert data["overall_score"] == 70  # noqa: PLR2004
+        assert data["overall_score"] == 70
 
 
 class TestBaseAgentSystemPrompt:
