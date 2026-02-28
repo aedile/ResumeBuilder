@@ -62,6 +62,34 @@ class TestUserPreferences:
         assert prefs.default_length == "one_page"
 
 
+class TestContactInfoLinkedIn:
+    """Tests for ContactInfo.linkedin_url field (P2-T11)."""
+
+    def test_contact_info_accepts_linkedin_url(self) -> None:
+        """ContactInfo accepts an optional LinkedIn profile URL."""
+        contact = ContactInfo(
+            email="test@example.com",
+            linkedin_url="https://linkedin.com/in/testuser",
+        )
+        assert contact.linkedin_url == "https://linkedin.com/in/testuser"
+
+    def test_contact_info_linkedin_url_defaults_to_none(self) -> None:
+        """ContactInfo.linkedin_url is None when not provided."""
+        contact = ContactInfo(email="test@example.com")
+        assert contact.linkedin_url is None
+
+    def test_contact_info_all_fields(self) -> None:
+        """ContactInfo accepts email, phone, and linkedin_url together."""
+        contact = ContactInfo(
+            email="alex@example.com",
+            phone="555-9876",
+            linkedin_url="https://linkedin.com/in/alex",
+        )
+        assert contact.email == "alex@example.com"
+        assert contact.phone == "555-9876"
+        assert contact.linkedin_url == "https://linkedin.com/in/alex"
+
+
 class TestAppConfig:
     """Tests for AppConfig model."""
 
