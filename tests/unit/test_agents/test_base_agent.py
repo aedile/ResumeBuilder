@@ -9,12 +9,12 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import anthropic
 import httpx
 import pytest
 
-import anthropic
-
-from resume_builder.models.agent import AgentResponse, ToolDefinition, TokenUsage
+from resume_builder.agents.base import BaseAgent
+from resume_builder.models.agent import AgentResponse, ToolDefinition
 
 
 def _make_text_response(text: str = "Test response") -> MagicMock:
@@ -73,51 +73,37 @@ class TestBaseAgentInit:
 
     def test_default_model(self, mock_client: MagicMock) -> None:
         """BaseAgent uses claude-sonnet-4-6 as the default model."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         assert agent.model == "claude-sonnet-4-6"
 
     def test_default_max_tokens(self, mock_client: MagicMock) -> None:
         """BaseAgent defaults to 4096 max_tokens."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         assert agent.max_tokens == 4096
 
     def test_default_timeout(self, mock_client: MagicMock) -> None:
         """BaseAgent defaults to 30.0 second timeout."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         assert agent.timeout == 30.0
 
     def test_starts_with_no_tools(self, mock_client: MagicMock) -> None:
         """BaseAgent starts with an empty tools list."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         assert agent._tools == []
 
     def test_starts_with_empty_history(self, mock_client: MagicMock) -> None:
         """BaseAgent starts with no message history."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         assert agent.message_history == []
 
     def test_starts_with_zero_token_usage(self, mock_client: MagicMock) -> None:
         """BaseAgent starts with zeroed token usage."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         assert agent.token_usage.input_tokens == 0
         assert agent.token_usage.output_tokens == 0
 
     def test_custom_parameters(self, mock_client: MagicMock) -> None:
         """BaseAgent accepts custom model, max_tokens, timeout, max_retries."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(
             client=mock_client,
             model="claude-opus-4-6",
@@ -136,8 +122,6 @@ class TestBaseAgentToolRegistration:
 
     def test_register_tool_adds_to_list(self, mock_client: MagicMock) -> None:
         """register_tool appends the ToolDefinition to the tools list."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         tool_def = ToolDefinition(
             name="my_tool",
@@ -150,8 +134,6 @@ class TestBaseAgentToolRegistration:
 
     def test_register_tool_stores_handler(self, mock_client: MagicMock) -> None:
         """register_tool maps tool name to its callable handler."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         handler = lambda: "result"  # noqa: E731
         tool_def = ToolDefinition(
@@ -163,13 +145,15 @@ class TestBaseAgentToolRegistration:
 
     def test_register_multiple_tools(self, mock_client: MagicMock) -> None:
         """Multiple tools can be registered and all are accessible."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         for name in ("tool_a", "tool_b", "tool_c"):
             agent.register_tool(
-                ToolDefinition(name=name, description=name, input_schema={"type": "object", "properties": {}}),
-                handler=lambda: name,
+                ToolDefinition(
+                    name=name,
+                    description=name,
+                    input_schema={"type": "object", "properties": {}},
+                ),
+                handler=lambda n=name: n,
             )
         assert len(agent._tools) == 3
         assert "tool_a" in agent._tool_handlers
@@ -181,16 +165,12 @@ class TestBaseAgentSendMessage:
 
     async def test_returns_agent_response(self, mock_client: MagicMock) -> None:
         """send_message returns an AgentResponse instance."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         result = await agent.send_message("Hello")
         assert isinstance(result, AgentResponse)
 
     async def test_response_contains_text(self, mock_client: MagicMock) -> None:
         """AgentResponse.content matches the text returned by the API."""
-        from resume_builder.agents.base import BaseAgent
-
         mock_client.messages.create.return_value = _make_text_response("Hi there!")
         agent = BaseAgent(client=mock_client)
         result = await agent.send_message("Hello")
@@ -198,16 +178,12 @@ class TestBaseAgentSendMessage:
 
     async def test_appends_user_message_to_history(self, mock_client: MagicMock) -> None:
         """send_message adds the user content to message_history."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         await agent.send_message("Greetings")
         assert agent.message_history[0] == {"role": "user", "content": "Greetings"}
 
     async def test_accumulates_token_usage(self, mock_client: MagicMock) -> None:
         """Token usage from each API call is accumulated on the agent."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         await agent.send_message("First call")
         await agent.send_message("Second call")
@@ -217,8 +193,6 @@ class TestBaseAgentSendMessage:
 
     async def test_passes_tools_to_api(self, mock_client: MagicMock) -> None:
         """Registered tools are forwarded to the Anthropic API call."""
-        from resume_builder.agents.base import BaseAgent
-
         agent = BaseAgent(client=mock_client)
         tool_def = ToolDefinition(
             name="my_tool", description="desc", input_schema={"type": "object", "properties": {}}
@@ -231,8 +205,6 @@ class TestBaseAgentSendMessage:
 
     async def test_executes_tool_call_and_continues(self, mock_client: MagicMock) -> None:
         """When API returns tool_use, agent calls the handler and sends result back."""
-        from resume_builder.agents.base import BaseAgent
-
         tool_response = _make_tool_response("toolu_01", "echo_tool", {"text": "ping"})
         final_response = _make_text_response("pong received")
         mock_client.messages.create.side_effect = [tool_response, final_response]
@@ -252,8 +224,6 @@ class TestBaseAgentSendMessage:
 
     async def test_tool_result_added_to_history(self, mock_client: MagicMock) -> None:
         """Tool results are added to message_history before the follow-up call."""
-        from resume_builder.agents.base import BaseAgent
-
         tool_response = _make_tool_response("toolu_01", "echo_tool", {"text": "hi"})
         final_response = _make_text_response("done")
         mock_client.messages.create.side_effect = [tool_response, final_response]
@@ -279,8 +249,6 @@ class TestBaseAgentRetry:
 
     async def test_retries_on_rate_limit(self) -> None:
         """send_message retries up to max_retries on RateLimitError."""
-        from resume_builder.agents.base import BaseAgent
-
         client = MagicMock(spec=anthropic.Anthropic)
         error = _make_rate_limit_error()
         client.messages.create.side_effect = [error, error, _make_text_response("ok")]
@@ -294,8 +262,6 @@ class TestBaseAgentRetry:
 
     async def test_raises_after_max_retries_exhausted(self) -> None:
         """send_message raises RateLimitError after all retries fail."""
-        from resume_builder.agents.base import BaseAgent
-
         client = MagicMock(spec=anthropic.Anthropic)
         client.messages.create.side_effect = _make_rate_limit_error()
 
@@ -308,8 +274,6 @@ class TestBaseAgentRetry:
 
     async def test_does_not_retry_on_non_rate_limit_error(self) -> None:
         """send_message does not retry on general API errors."""
-        from resume_builder.agents.base import BaseAgent
-
         client = MagicMock(spec=anthropic.Anthropic)
         mock_resp = MagicMock(spec=httpx.Response)
         mock_resp.status_code = 500
@@ -330,8 +294,6 @@ class TestBaseAgentRetry:
 
     async def test_exponential_backoff_sleep_called(self) -> None:
         """Retry sleep duration doubles on each attempt (exponential backoff)."""
-        from resume_builder.agents.base import BaseAgent
-
         client = MagicMock(spec=anthropic.Anthropic)
         error = _make_rate_limit_error()
         client.messages.create.side_effect = [error, error, _make_text_response("ok")]

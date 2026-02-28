@@ -13,10 +13,10 @@ from resume_builder.models.agent import (
     AgentMessage,
     AgentResponse,
     AgentState,
+    TokenUsage,
     ToolCall,
     ToolDefinition,
     ToolResult,
-    TokenUsage,
 )
 
 
