@@ -9,6 +9,7 @@ from .agent import (
     ToolDefinition,
     ToolResult,
 )
+from .match import JobDescription, MatchReport
 from .resume import (
     Certification,
     Education,
@@ -30,7 +31,9 @@ __all__ = [
     "Certification",
     "Education",
     "Honor",
+    "JobDescription",
     "Language",
+    "MatchReport",
     "Position",
     "Profile",
     "Project",
