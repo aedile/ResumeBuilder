@@ -12,6 +12,7 @@ from unittest.mock import MagicMock
 
 import anthropic
 import pytest
+from pydantic import ValidationError
 
 from resume_builder.agents.base import BaseAgent
 from resume_builder.agents.optimizer_agent import OptimizerAgent
@@ -290,7 +291,5 @@ class TestOptimizedResumeModel:
 
     def test_optimized_resume_invalid_schema_rejected(self) -> None:
         """OptimizedResume rejects unknown fields (extra='forbid')."""
-        from pydantic import ValidationError
-
         with pytest.raises(ValidationError):
             OptimizedResume(**{"bad_field": "value"})  # type: ignore[arg-type]
