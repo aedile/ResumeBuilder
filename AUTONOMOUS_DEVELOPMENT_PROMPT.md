@@ -1,7 +1,7 @@
 # Resume Builder Autonomous Development Prompt
 
-**Version**: 1.0.0
-**Last Updated**: 2024-12-12
+**Version**: 1.1.0
+**Last Updated**: 2026-02-28
 **Status**: Active
 **Governed By**: [CONSTITUTION.md](CONSTITUTION.md)
 
@@ -684,6 +684,7 @@ Failure to follow the CONSTITUTION will result in rejected code and wasted effor
 **Version History**:
 
 - 1.0.0 (2024-12-12): Adapted for Resume Builder project
+- 1.1.0 (2026-02-28): Updated model reference to claude-sonnet-4-6; corrected last-updated date
 
 ---
 

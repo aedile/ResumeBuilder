@@ -11,12 +11,12 @@ This document tracks overall project progress across all phases. Detailed task s
 | Phase | Name | Status | Progress | Description |
 |-------|------|--------|----------|-------------|
 | **0** | [Foundation](docs/backlog/phase-0.md) | Complete | 8/8 | Development environment, tooling, sample data |
-| **1** | [Core Functionality](docs/backlog/phase-1.md) | Not Started | 0/12 | Models, parsers, generators, templates |
-| **2** | [AI Integration](docs/backlog/phase-2.md) | Not Started | 0/10 | Agents, tools, orchestration |
+| **1** | [Core Functionality](docs/backlog/phase-1.md) | Complete | 12/12 | Models, parsers, generators, templates |
+| **2** | [AI Integration](docs/backlog/phase-2.md) | Complete | 11/11 | Agents, tools, orchestration, contact info |
 | **3** | [Review & Polish](docs/backlog/phase-3.md) | Not Started | 0/8 | QA agent, HR agent, accessibility |
 | **4** | [Production Ready](docs/backlog/phase-4.md) | Not Started | 0/6 | Integration tests, documentation, optimization |
 
-**Total Tasks**: 44
+**Total Tasks**: 45 (P2-T11 added during Phase 1 review)
 
 ---
 
@@ -74,3 +74,5 @@ flowchart LR
 | Date | Change |
 |------|--------|
 | 2024-12-12 | Initial backlog created |
+| 2026-02-27 | Phase 1 complete (12/12 tasks merged to main) |
+| 2026-02-28 | Phase 2 complete (11/11 tasks merged to main; P2-T11 added for contact info) |

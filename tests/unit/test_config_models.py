@@ -62,6 +62,50 @@ class TestUserPreferences:
         assert prefs.default_length == "one_page"
 
 
+class TestContactInfoLinkedInValidation:
+    """Tests for ContactInfo.linkedin_url URL validation (retrospective fix).
+
+    linkedin_url must be a valid http/https URL to prevent injection
+    of javascript: or data: URIs into rendered HTML href attributes.
+    """
+
+    def test_linkedin_url_rejects_javascript_scheme(self) -> None:
+        """ContactInfo rejects javascript: URIs in linkedin_url."""
+        with pytest.raises(ValidationError):
+            ContactInfo(email="test@example.com", linkedin_url="javascript:alert(1)")
+
+    def test_linkedin_url_rejects_data_uri(self) -> None:
+        """ContactInfo rejects data: URIs in linkedin_url."""
+        with pytest.raises(ValidationError):
+            ContactInfo(email="test@example.com", linkedin_url="data:text/html,<script>")
+
+    def test_linkedin_url_rejects_plain_string(self) -> None:
+        """ContactInfo rejects plain strings that are not URLs."""
+        with pytest.raises(ValidationError):
+            ContactInfo(email="test@example.com", linkedin_url="not-a-url")
+
+    def test_linkedin_url_accepts_https(self) -> None:
+        """ContactInfo accepts https:// LinkedIn URLs."""
+        contact = ContactInfo(
+            email="test@example.com",
+            linkedin_url="https://linkedin.com/in/testuser",
+        )
+        assert "linkedin.com/in/testuser" in contact.linkedin_url  # type: ignore[operator]
+
+    def test_linkedin_url_accepts_http(self) -> None:
+        """ContactInfo accepts http:// URLs (some internal proxies use http)."""
+        contact = ContactInfo(
+            email="test@example.com",
+            linkedin_url="http://linkedin.com/in/testuser",
+        )
+        assert contact.linkedin_url is not None
+
+    def test_linkedin_url_accepts_none(self) -> None:
+        """ContactInfo.linkedin_url is None when not provided."""
+        contact = ContactInfo(email="test@example.com")
+        assert contact.linkedin_url is None
+
+
 class TestContactInfoLinkedIn:
     """Tests for ContactInfo.linkedin_url field (P2-T11)."""
 

@@ -12,8 +12,6 @@ from typing import Any
 
 from pydantic import BaseModel, computed_field
 
-from resume_builder.models.resume import Resume
-
 
 class ToolDefinition(BaseModel):
     """Schema definition for a tool that an agent can invoke.
@@ -128,14 +126,11 @@ class AgentResponse(BaseModel):
 
 
 class AgentState(BaseModel):
-    """Shared workflow state passed between agents in the orchestration pipeline.
+    """Tracks the current step of the orchestration pipeline.
 
     Args:
-        step: Current pipeline step name (e.g. ``"parsing"``, ``"matching"``).
-        history: Conversation history as AgentMessage objects.
-        resume: Parsed resume object, populated after the parsing step.
+        step: Current pipeline step name (e.g. ``"idle"``, ``"parsing"``,
+            ``"matching"``, ``"optimizing"``, ``"complete"``).
     """
 
     step: str = "idle"
-    history: list[AgentMessage] = []
-    resume: Resume | None = None
