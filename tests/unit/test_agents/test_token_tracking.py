@@ -15,15 +15,12 @@ import pytest
 from resume_builder.agents.base import BaseAgent
 from resume_builder.models.agent import TokenUsage
 
-
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
 
 
-def _make_text_response(
-    input_tokens: int = 100, output_tokens: int = 50
-) -> MagicMock:
+def _make_text_response(input_tokens: int = 100, output_tokens: int = 50) -> MagicMock:
     """Build a mock Anthropic response with configurable token counts."""
     block = MagicMock()
     block.type = "text"
@@ -105,9 +102,7 @@ class TestBaseAgentGetUsageReport:
         report = agent.get_usage_report()
         assert isinstance(report, dict)
 
-    def test_get_usage_report_includes_required_keys(
-        self, mock_client: MagicMock
-    ) -> None:
+    def test_get_usage_report_includes_required_keys(self, mock_client: MagicMock) -> None:
         """get_usage_report() contains input_tokens, output_tokens, total_tokens, estimated_cost."""
         agent = BaseAgent(client=mock_client)
         report = agent.get_usage_report()
@@ -124,9 +119,7 @@ class TestBaseAgentGetUsageReport:
         assert report["output_tokens"] == 0
         assert report["total_tokens"] == 0
 
-    async def test_get_usage_report_after_api_call(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_get_usage_report_after_api_call(self, mock_client: MagicMock) -> None:
         """get_usage_report() reflects token counts from a real API call."""
         mock_client.messages.create.return_value = _make_text_response(200, 75)
         agent = BaseAgent(client=mock_client)
@@ -136,20 +129,16 @@ class TestBaseAgentGetUsageReport:
         assert report["output_tokens"] == 75
         assert report["total_tokens"] == 275
 
-    async def test_get_usage_report_accumulates_across_calls(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_get_usage_report_accumulates_across_calls(self, mock_client: MagicMock) -> None:
         """get_usage_report() accumulates tokens across multiple send_message calls."""
         mock_client.messages.create.return_value = _make_text_response(100, 50)
         agent = BaseAgent(client=mock_client)
         await agent.send_message("First message")
         await agent.send_message("Second message")
         report = agent.get_usage_report()
-        assert report["total_tokens"] == 300  # 150 × 2
+        assert report["total_tokens"] == 300  # 150 x 2
 
-    def test_get_usage_report_total_equals_input_plus_output(
-        self, mock_client: MagicMock
-    ) -> None:
+    def test_get_usage_report_total_equals_input_plus_output(self, mock_client: MagicMock) -> None:
         """get_usage_report() total_tokens == input_tokens + output_tokens."""
         agent = BaseAgent(client=mock_client)
         agent.token_usage = TokenUsage(input_tokens=123, output_tokens=456)

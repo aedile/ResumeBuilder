@@ -7,18 +7,18 @@ All tests use mocked sub-agents — no real API calls ever made.
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, call
+import json
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from resume_builder.agents.orchestrator import OrchestratorAgent
 from resume_builder.exceptions import ParseError
 from resume_builder.models.agent import TokenUsage
 from resume_builder.models.match import JobDescription, MatchReport
 from resume_builder.models.optimizer import OptimizedResume
 from resume_builder.models.orchestrator import FinalResult
 from resume_builder.models.resume import Profile, Resume
-
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -85,13 +85,6 @@ def linkedin_data() -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------------
-# Imports from module-under-test
-# ---------------------------------------------------------------------------
-
-from resume_builder.agents.orchestrator import OrchestratorAgent  # noqa: E402
-
-
-# ---------------------------------------------------------------------------
 # Initialisation tests
 # ---------------------------------------------------------------------------
 
@@ -106,9 +99,7 @@ class TestOrchestratorAgentInit:
         mock_optimizer: MagicMock,
     ) -> None:
         """OrchestratorAgent stores pre-built agent instances."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         assert orch.parser is mock_parser
         assert orch.matcher is mock_matcher
         assert orch.optimizer is mock_optimizer
@@ -120,9 +111,7 @@ class TestOrchestratorAgentInit:
         mock_optimizer: MagicMock,
     ) -> None:
         """OrchestratorAgent starts in 'idle' state."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         assert orch.state.step == "idle"
 
     def test_orchestrator_creates_default_agents_from_client(self) -> None:
@@ -151,9 +140,7 @@ class TestOrchestratorAgentRun:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() returns a FinalResult on the happy path."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert isinstance(result, FinalResult)
 
@@ -166,9 +153,7 @@ class TestOrchestratorAgentRun:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() result.resume is an OptimizedResume."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert isinstance(result.resume, OptimizedResume)
 
@@ -181,9 +166,7 @@ class TestOrchestratorAgentRun:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() result.match contains the MatchReport."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert isinstance(result.match, MatchReport)
         assert result.match.overall_score == 80
@@ -197,9 +180,7 @@ class TestOrchestratorAgentRun:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() forwards linkedin_data to parser.parse()."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         await orch.run(linkedin_data, sample_job)
         mock_parser.parse.assert_awaited_once_with(linkedin_data)
 
@@ -212,9 +193,7 @@ class TestOrchestratorAgentRun:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() passes parsed resume and job to matcher.analyze()."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         resume = _make_resume()
         mock_parser.parse.return_value = resume
         await orch.run(linkedin_data, sample_job)
@@ -229,9 +208,7 @@ class TestOrchestratorAgentRun:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() passes resume, job, and match to optimizer.optimize()."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         resume = _make_resume()
         match = _make_match()
         mock_parser.parse.return_value = resume
@@ -248,9 +225,7 @@ class TestOrchestratorAgentRun:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() result.errors is empty on success."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert result.errors == []
 
@@ -272,9 +247,7 @@ class TestOrchestratorProgress:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() calls on_progress with 'parsing', 'matching', 'optimizing', 'complete'."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         progress_steps: list[str] = []
         await orch.run(linkedin_data, sample_job, on_progress=progress_steps.append)
         assert progress_steps == ["parsing", "matching", "optimizing", "complete"]
@@ -288,9 +261,7 @@ class TestOrchestratorProgress:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() completes normally when on_progress is None."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job, on_progress=None)
         assert isinstance(result, FinalResult)
 
@@ -303,9 +274,7 @@ class TestOrchestratorProgress:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() sets state.step to 'complete' after successful run."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         await orch.run(linkedin_data, sample_job)
         assert orch.state.step == "complete"
 
@@ -327,12 +296,8 @@ class TestOrchestratorApproval:
         linkedin_data: dict[str, str],
     ) -> None:
         """When approval_callback returns True, optimizer runs normally."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
-        result = await orch.run(
-            linkedin_data, sample_job, approval_callback=lambda _match: True
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
+        result = await orch.run(linkedin_data, sample_job, approval_callback=lambda _match: True)
         mock_optimizer.optimize.assert_awaited_once()
         assert result.errors == []
 
@@ -345,12 +310,8 @@ class TestOrchestratorApproval:
         linkedin_data: dict[str, str],
     ) -> None:
         """When approval_callback returns False, optimizer is skipped."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
-        result = await orch.run(
-            linkedin_data, sample_job, approval_callback=lambda _match: False
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
+        result = await orch.run(linkedin_data, sample_job, approval_callback=lambda _match: False)
         mock_optimizer.optimize.assert_not_awaited()
         assert "approval" in result.errors[0].lower()
 
@@ -363,12 +324,8 @@ class TestOrchestratorApproval:
         linkedin_data: dict[str, str],
     ) -> None:
         """When approval_callback returns False, match is still in result."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
-        result = await orch.run(
-            linkedin_data, sample_job, approval_callback=lambda _match: False
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
+        result = await orch.run(linkedin_data, sample_job, approval_callback=lambda _match: False)
         assert isinstance(result.match, MatchReport)
 
     async def test_run_no_approval_callback_skips_check(
@@ -380,9 +337,7 @@ class TestOrchestratorApproval:
         linkedin_data: dict[str, str],
     ) -> None:
         """run() with no approval_callback always proceeds to optimizer."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         await orch.run(linkedin_data, sample_job)
         mock_optimizer.optimize.assert_awaited_once()
 
@@ -405,9 +360,7 @@ class TestOrchestratorFailures:
     ) -> None:
         """run() re-raises ParseError when parser fails."""
         mock_parser.parse.side_effect = ParseError("bad data")
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         with pytest.raises(ParseError):
             await orch.run(linkedin_data, sample_job)
 
@@ -421,9 +374,7 @@ class TestOrchestratorFailures:
     ) -> None:
         """run() re-raises ParseError when matcher fails."""
         mock_matcher.analyze.side_effect = ParseError("bad match")
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         with pytest.raises(ParseError):
             await orch.run(linkedin_data, sample_job)
 
@@ -437,9 +388,7 @@ class TestOrchestratorFailures:
     ) -> None:
         """run() returns partial FinalResult when optimizer fails."""
         mock_optimizer.optimize.side_effect = ParseError("optimizer error")
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert isinstance(result, FinalResult)
         assert len(result.errors) > 0
@@ -454,9 +403,7 @@ class TestOrchestratorFailures:
     ) -> None:
         """run() preserves match report even when optimizer fails."""
         mock_optimizer.optimize.side_effect = ParseError("optimizer error")
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert isinstance(result.match, MatchReport)
 
@@ -470,9 +417,7 @@ class TestOrchestratorFailures:
     ) -> None:
         """run() returns empty OptimizedResume when optimizer fails."""
         mock_optimizer.optimize.side_effect = ParseError("optimizer error")
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert isinstance(result.resume, OptimizedResume)
         assert result.resume.summary is None
@@ -496,9 +441,7 @@ class TestOrchestratorTokenUsage:
         linkedin_data: dict[str, str],
     ) -> None:
         """FinalResult contains aggregated token usage."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert isinstance(result.token_usage, TokenUsage)
 
@@ -512,9 +455,7 @@ class TestOrchestratorTokenUsage:
     ) -> None:
         """FinalResult.token_usage sums tokens from all three agents."""
         # Parser: 100+50=150, Matcher: 200+80=280, Optimizer: 300+120=420 → total 850
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
         assert result.token_usage.total_tokens == 850
 
@@ -525,9 +466,7 @@ class TestOrchestratorTokenUsage:
         mock_optimizer: MagicMock,
     ) -> None:
         """get_usage_report() returns dict with per-agent and total keys."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         report = orch.get_usage_report()
         assert "parser" in report
         assert "matcher" in report
@@ -541,9 +480,7 @@ class TestOrchestratorTokenUsage:
         mock_optimizer: MagicMock,
     ) -> None:
         """get_usage_report() total_tokens equals sum of all agents."""
-        orch = OrchestratorAgent(
-            parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer
-        )
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         report = orch.get_usage_report()
         per_agent = (
             report["parser"]["total_tokens"]
@@ -583,8 +520,6 @@ class TestFinalResultModel:
 
     def test_final_result_serializes_to_json(self) -> None:
         """FinalResult serializes cleanly via model_dump_json."""
-        import json
-
         result = FinalResult(
             resume=OptimizedResume(changes=["rewrote summary"]),
             token_usage=TokenUsage(input_tokens=50, output_tokens=25),

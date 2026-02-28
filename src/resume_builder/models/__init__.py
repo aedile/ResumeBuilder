@@ -11,6 +11,7 @@ from .agent import (
 )
 from .match import JobDescription, MatchReport
 from .optimizer import OptimizedResume
+from .orchestrator import FinalResult
 from .resume import (
     Certification,
     Education,
@@ -31,6 +32,7 @@ __all__ = [
     "AgentState",
     "Certification",
     "Education",
+    "FinalResult",
     "Honor",
     "JobDescription",
     "Language",

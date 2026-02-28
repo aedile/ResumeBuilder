@@ -153,6 +153,15 @@ class BaseAgent:
         )
         return AgentResponse(content=text, stop_reason=response.stop_reason)
 
+    def get_usage_report(self) -> dict[str, Any]:
+        """Return a summary of token usage for this agent.
+
+        Returns:
+            Dict with ``input_tokens``, ``output_tokens``, ``total_tokens``,
+            and ``estimated_cost`` for all API calls made by this agent.
+        """
+        return self.token_usage.model_dump()
+
     async def _handle_tool_calls(self, response: Any) -> AgentResponse:
         """Execute each tool requested by the model and send results back.
 
