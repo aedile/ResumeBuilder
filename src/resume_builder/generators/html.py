@@ -6,7 +6,7 @@ CONSTITUTION Priority 9: WCAG 2.1 AA Accessibility
 
 import importlib.resources
 
-from jinja2 import Environment, FileSystemLoader, TemplateNotFound
+from jinja2 import Environment, FileSystemLoader
 
 from resume_builder.generators.constants import SUPPORTED_STYLES
 from resume_builder.models.resume import Resume
@@ -43,10 +43,5 @@ class HTMLGenerator:
             )
 
         template_name = f"{style}.html"
-
-        try:
-            template = self.env.get_template(template_name)
-        except TemplateNotFound as e:
-            raise ValueError(f"Template not found for style: {style}") from e
-
+        template = self.env.get_template(template_name)
         return template.render(resume=resume)

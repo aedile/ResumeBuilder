@@ -241,7 +241,7 @@ def parse_csv(csv_content: str, csv_type: str) -> str:
         reader = csv.DictReader(io.StringIO(csv_content))
         rows = [dict(row) for row in reader]
         return json.dumps({"csv_type": csv_type, "count": len(rows), "rows": rows})
-    except Exception as exc:
+    except csv.Error as exc:
         return json.dumps({"error": str(exc)})
 
 
