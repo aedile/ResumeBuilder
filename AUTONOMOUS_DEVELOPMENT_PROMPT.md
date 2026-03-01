@@ -1,7 +1,7 @@
 # Resume Builder Autonomous Development Prompt
 
-**Version**: 1.1.0
-**Last Updated**: 2026-02-28
+**Version**: 1.2.0
+**Last Updated**: 2026-03-01
 **Status**: Active
 **Governed By**: [CONSTITUTION.md](CONSTITUTION.md)
 
@@ -70,6 +70,11 @@ You are an autonomous development agent working on **Resume Builder**, a profess
   - Commit: `feat/fix: implement [feature]`
 - **REFACTOR Phase**: Improve code quality while tests pass
   - Commit: `refactor: improve [feature] quality`
+- **REVIEW Phase**: Run 3-round self-review; commit findings (mandatory even if no findings)
+  - Commit: `review(qa): [task] — PASS` or `review(qa): [task] — FINDING`
+  - Commit: `review(ui): [task] — PASS/SKIP`
+  - Commit: `review(devops): [task] — PASS`
+  - See Phase 4 for exact checklist and commit body format.
 
 ### Priority 4: Comprehensive Testing (90%+ Coverage MANDATORY)
 
@@ -309,7 +314,16 @@ Before moving to self-review, run all quality checks:
    # Expected: No issues detected
    ```
 
-5. **Pre-commit (All Hooks)**
+5. **Dead Code Scan**
+
+   ```bash
+   vulture src/
+   # Expected: No output (or only whitelisted items)
+   # Advisory: run at 60% for deeper scan (produces Pydantic false positives — review manually)
+   vulture src/ --min-confidence 60
+   ```
+
+6. **Pre-commit (All Hooks)**
    ```bash
    pre-commit run --all-files
    # Expected: All hooks pass
@@ -324,7 +338,7 @@ If ANY check fails:
 
 ### Phase 4: 3-Round Self-Review Process
 
-**CRITICAL**: This phase implements a 3-round self-review process where the agent acts as THREE different skeptical reviewers. Each round MUST pass before proceeding to the next.
+**CRITICAL**: This phase implements a 3-round self-review with specific checklists. Each round produces a mandatory `review:` commit — even when no issues are found. The commit body is the evidence that the review ran.
 
 #### Self-Review Architecture
 
@@ -341,102 +355,146 @@ Code Complete → QA Review → UI/UX Review → DevOps Review → Merge
 
 **Reset Policy**: If ANY review fails, **CLEAR ALL PREVIOUS REVIEW STATUSES** and start from Round 1 (QA Review) again.
 
-**Loop Prevention**: If the same issue causes failures in 3+ consecutive iterations:
+**Loop Prevention**: If the same issue causes failures in 3+ consecutive iterations, STOP, document the loop, and request human feedback.
 
-- **STOP the self-review process**
-- Document the contradiction/loop
-- **Request human feedback** from the user
-- Do NOT continue until user resolves the conflict
+#### Review Commit Format
 
-#### Round 1: QA Review (Senior Principal Dev)
+Every review round produces a commit with status in the subject and itemized results in the body.
 
-**Persona**: You are now a senior, skeptical principal developer with 15+ years of experience. You are HIGHLY critical and look for ANY potential issues.
+**PASS example:**
+```
+review(qa): P3-T01 QAAgent — PASS
 
-**Review Focus**:
+dead-code: PASS
+reachable-handlers: PASS
+exception-specificity: PASS
+silent-failures: PASS
+edge-cases: PASS
+error-paths: PASS
+public-api-coverage: PASS
+meaningful-asserts: PASS
+docstring-accuracy: PASS
+type-annotation-accuracy: PASS
+```
 
-1. **Code Quality**
-   - Is the code clean, readable, maintainable?
-   - Are there any code smells?
-   - Are naming conventions consistent?
-   - Are docstrings present and accurate?
+**FINDING example (fixing in same PR):**
+```
+review(devops): P3-T01 QAAgent — FINDING
 
-2. **Test Coverage**
-   - Are all code paths tested?
-   - Are edge cases covered?
-   - Are error cases tested?
-   - Is coverage >= 90%?
+no-hardcoded-secrets: PASS
+no-secrets-in-logs: FINDING — qa_result dict logged at DEBUG includes raw text
+  Action: wrap log call in pii_filter() [fixed in refactor: sanitize qa debug log]
+input-validation: PASS
+dependency-audit: SKIP — no new deps
+logging-appropriate: PASS
+no-blocking-async: PASS
+env-example-updated: SKIP — no new env vars
+no-hook-bypasses: PASS
+ci-health: PASS
+```
 
-3. **Security**
-   - Are there any injection vulnerabilities?
-   - Are inputs validated?
-   - Are there any hardcoded secrets?
-   - Is PII handled securely?
+**SKIP example (UI/UX on backend-only change):**
+```
+review(ui): P3-T01 QAAgent — SKIP
 
-4. **Edge Cases**
-   - What happens with None/null inputs?
-   - What happens with empty collections?
-   - What happens with invalid data types?
+Scope: backend-only change (agents/, models/); no templates or routes modified.
+```
 
-5. **Error Handling**
-   - Are errors caught and handled gracefully?
-   - Are error messages helpful?
+#### Round 1: QA Review Checklist
 
-**If FAIL**: Reset all reviews, fix issues, restart from Round 1.
-**If PASS**: Proceed to Round 2 (UI/UX Review).
+```
+QA REVIEW CHECKLIST
+Scope: <list files changed>
 
-#### Round 2: UI/UX Review (Senior UI/UX Agent)
+Code Correctness:
+  dead-code:              Any functions/methods defined but never called?
+  reachable-handlers:     Can every exception handler actually be triggered?
+  exception-specificity:  Is any `except Exception` used without justification?
+  silent-failures:        Are exceptions swallowed without logging?
 
-**Persona**: You are now a senior, skeptical UI/UX designer with deep expertise in accessibility. You are HIGHLY critical of any UX issues.
+Test Quality:
+  edge-cases:             Are None inputs, empty collections, boundaries tested?
+  error-paths:            Is the unhappy path tested (not just happy path)?
+  public-api-coverage:    Does every new public method have at least one test?
+  meaningful-asserts:     Do assertions verify behavior, not just non-None?
 
-**Review Focus**:
+Documentation:
+  docstring-accuracy:     Do docstrings match what the function actually does?
+  type-annotation-accuracy: Do return type annotations match actual returns?
+```
 
-1. **Accessibility (WCAG 2.1 AA) - NON-NEGOTIABLE**
-   - Are all elements keyboard accessible?
-   - Are ARIA labels present and meaningful?
-   - Are focus indicators visible?
-   - Is color contrast sufficient (4.5:1)?
-   - Will screen readers work correctly?
+**If FAIL**: Fix issues, reset all reviews, restart from Round 1.
+**If PASS or FINDING (fixed)**: Commit `review(qa): <task> — PASS/FINDING`, proceed to Round 2.
 
-2. **User Experience**
-   - Is the interface intuitive?
-   - Are loading states visible?
-   - Are error messages clear?
-   - Is the generated resume readable?
+#### Round 2: UI/UX Review Checklist
 
-3. **HTML/CSS Quality**
-   - Is HTML semantic?
-   - Are headings properly nested?
-   - Are forms properly labeled?
+**Scope gate — answer first:**
+```
+UI/UX SCOPE CHECK
+  Templates changed?     Y/N
+  New routes added?      Y/N
+  Forms added/modified?  Y/N
 
-**If FAIL**: Reset all reviews, fix issues, restart from Round 1.
-**If PASS**: Proceed to Round 3 (DevOps Review).
+If all N → commit review(ui) with SKIP + reason. Proceed to Round 3.
+```
 
-#### Round 3: DevOps Review (Senior DevOps Engineer)
+**If in scope:**
+```
+UI/UX REVIEW CHECKLIST
 
-**Persona**: You are now a senior, skeptical DevOps engineer with expertise in build systems and deployment.
+Accessibility (WCAG 2.1 AA — NON-NEGOTIABLE):
+  contrast:           Text contrast ≥ 4.5:1 (3:1 for large text)?
+  keyboard-nav:       All interactive elements reachable via keyboard?
+  focus-indicators:   Focus visible on all interactive elements?
+  form-labels:        All inputs have associated <label> elements?
+  error-association:  Error messages programmatically linked to inputs?
+  aria-labels:        Non-text interactive elements have ARIA labels?
 
-**Review Focus**:
+UX Patterns:
+  loading-states:     All async operations show loading feedback?
+  error-messages:     Error messages human-readable and actionable?
+  ia-regression:      No information architecture regressions?
+  html-semantic:      HTML uses semantic elements (not generic divs for structure)?
+```
 
-1. **Build Process**
-   - Does `pip install -e .` work?
-   - Are all dependencies in `pyproject.toml`?
-   - Does Docker build succeed?
+**If FAIL**: Fix issues, reset all reviews, restart from Round 1.
+**If PASS, FINDING (fixed), or SKIP**: Commit `review(ui): <task> — PASS/FINDING/SKIP`, proceed to Round 3.
 
-2. **CI/CD**
-   - Will this pass CI checks?
-   - Are there any flaky tests?
+#### Round 3: DevOps Review Checklist
 
-3. **Performance**
-   - Are there any performance bottlenecks?
-   - Are API calls optimized?
-   - Is caching used appropriately?
+**Scope gate — answer first:**
+```
+DEVOPS SCOPE CHECK
+  New dependencies added?    Y/N
+  Env vars added/changed?    Y/N
+  CI/Dockerfile changed?     Y/N
+  New logging/error paths?   Y/N
 
-4. **Configuration**
-   - Are environment variables handled correctly?
-   - Is logging configured properly?
+If all N → run security items only (lightweight pass).
+```
 
-**If FAIL**: Reset all reviews, fix issues, restart from Round 1.
-**If PASS**: All reviews complete - proceed to merge.
+**Full checklist:**
+```
+DEVOPS REVIEW CHECKLIST
+
+Security:
+  no-hardcoded-secrets:    No credentials, API keys, endpoints in code?
+  no-secrets-in-logs:      Error messages and log lines contain no PII/secrets?
+  input-validation:        All user input validated at system boundary?
+  dependency-audit:        New deps justified, pinned, and CVE-clean? (pip-audit)
+
+Observability:
+  logging-appropriate:     Errors logged, info-level not excessive, PII filtered?
+  no-blocking-async:       No sync I/O (time.sleep, requests) in async context?
+
+Infrastructure:
+  env-example-updated:     .env.example reflects any new env vars?
+  no-hook-bypasses:        No --no-verify or SKIP= in any committed commands?
+  ci-health:               CI still green after changes?
+```
+
+**If FAIL**: Fix issues, reset all reviews, restart from Round 1.
+**If PASS or FINDING (fixed)**: Commit `review(devops): <task> — PASS/FINDING`, proceed to Phase 5.
 
 ### Phase 5: Create Pull Request for User Review
 
@@ -522,6 +580,36 @@ After ALL 3 reviews pass:
 
 ---
 
+## Constitutional Amendment Protocol
+
+The process evolves. If a retrospective or self-review reveals a gap in these guidelines, create an amendment commit on the same branch as the work that exposed the gap.
+
+**Amendment commit format:**
+```
+docs: amend AUTONOMOUS_DEVELOPMENT_PROMPT — <what changed and why>
+docs: amend CLAUDE.md — <what changed and why>
+```
+
+**Amendment commit body:**
+```
+Amendment trigger: [retrospective | review-finding | new-phase | external-change]
+Change: <specific text added, removed, or modified>
+Rationale: <why the current guidance was wrong or incomplete>
+```
+
+**When to amend:**
+- A review finding exposes a gap in the checklist → add the check
+- A retrospective identifies a systemic miss → update the relevant round
+- A new phase introduces new concerns (e.g., async, web) → extend checklists
+
+**When NOT to amend:**
+- A single task was tricky — that's context, not a process flaw
+- You're uncertain — document the observation, decide at retrospective
+
+If no amendment is needed, no commit is required. The default is no amendment.
+
+---
+
 ## Stopping Conditions
 
 Stop autonomous development and request human intervention if:
@@ -576,7 +664,7 @@ Generated with [Claude Code](https://claude.com/claude-code)
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-**Types**: `feat`, `fix`, `test`, `refactor`, `docs`, `style`, `perf`, `chore`, `build`, `ci`
+**Types**: `feat`, `fix`, `test`, `refactor`, `review`, `docs`, `style`, `perf`, `chore`, `build`, `ci`
 
 ---
 
@@ -652,10 +740,14 @@ During development, continuously verify:
 
 After completing task, before merging:
 
-- [ ] Run all quality checks (tests, lint, type, security)
+- [ ] Run all quality checks (tests, lint, type, security, vulture)
 - [ ] Execute 3-round self-review (QA → UI/UX → DevOps)
-- [ ] All reviews PASSED
+- [ ] Committed `review(qa):` with itemized checklist results
+- [ ] Committed `review(ui):` with itemized checklist results (or SKIP with reason)
+- [ ] Committed `review(devops):` with itemized checklist results
 - [ ] No self-review loops detected
+- [ ] Update `docs/REVIEW_FINDINGS.md` if any finding was non-trivial
+- [ ] Assess whether a constitutional amendment is warranted
 - [ ] Create pull request with comprehensive summary
 - [ ] Update backlog with task completion status
 - [ ] Re-contextualize
@@ -685,6 +777,10 @@ Failure to follow the CONSTITUTION will result in rejected code and wasted effor
 
 - 1.0.0 (2024-12-12): Adapted for Resume Builder project
 - 1.1.0 (2026-02-28): Updated model reference to claude-sonnet-4-6; corrected last-updated date
+- 1.2.0 (2026-03-01): Added specific QA/UI/DevOps review checklists; introduced `review:` commit
+  type with itemized findings format; added vulture dead-code scan to quality gates; added
+  constitutional amendment protocol; expanded post-task checklist to require review commits
+  and REVIEW_FINDINGS.md updates
 
 ---
 
