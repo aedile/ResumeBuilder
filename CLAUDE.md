@@ -58,6 +58,12 @@ Every code change follows this exact sequence - no exceptions:
    ```
    - Commit: `refactor: improve <feature>`
 
+4. **REVIEW**: Run 3-round self-review (MANDATORY — even if no issues found)
+   - Three commits required: `review(qa):`, `review(ui):`, `review(devops):`
+   - Each commit body contains itemized checklist results (PASS / FINDING / SKIP)
+   - See `AUTONOMOUS_DEVELOPMENT_PROMPT.md § Phase 4` for exact checklists and format
+   - Commit: `review(qa): <task> — PASS/FINDING` (+ body with per-item results)
+
 ### Quality Gates (All Must Pass)
 
 **CRITICAL**: This project uses Poetry for dependency management. ALL Python commands must be run via `poetry run`.
@@ -69,6 +75,8 @@ poetry run ruff format --check src/ tests/                     # Formatting
 poetry run mypy src/                                           # Type checking
 poetry run pytest --cov=src/resume_builder --cov-fail-under=90 # Tests + 90% coverage
 poetry run bandit -c pyproject.toml -r src/                    # Security scan
+vulture src/                                                   # Dead code (80% confidence)
+vulture src/ --min-confidence 60                               # Advisory: deeper scan
 pre-commit run --all-files                                     # All hooks
 
 # For Python scripts/validation:
@@ -90,8 +98,12 @@ fix/P1-T03-date-parsing-bug
 - `feat:` - New features (GREEN phase)
 - `fix:` - Bug fixes
 - `refactor:` - Refactoring (no behavior change)
-- `docs:` - Documentation only
+- `review:` - Self-review evidence commits (REVIEW phase — mandatory per task)
+- `docs:` - Documentation only (also used for constitutional amendments)
 - `chore:` - Tooling, config, dependencies
+
+**Constitutional amendments** use `docs:` with format:
+`docs: amend <filename> — <what changed and why>`
 
 ### Pull Request Workflow (MANDATORY)
 
@@ -109,7 +121,7 @@ fix/P1-T03-date-parsing-bug
 - Task ID and summary
 - Changes made (checklist format)
 - Acceptance criteria met
-- Self-review status (QA/UI-UX/DevOps)
+- Self-review commits (link or reference `review(qa/ui/devops):` commit hashes)
 - Constitution compliance
 - Test results
 - Backlog task completion marker
@@ -368,8 +380,10 @@ git commit -m "..."             # Recommit without PII
 ```
 BEFORE CODING:     Read task spec → Create branch → Write failing test
 WHILE CODING:      Minimal implementation → Pass tests → Refactor
-BEFORE COMMIT:     git status → git diff → ruff → mypy → pytest → pre-commit
-COMMIT MESSAGE:    type: description (test:, feat:, fix:, refactor:, docs:, chore:)
+BEFORE COMMIT:     git status → git diff → ruff → mypy → pytest → vulture → pre-commit
+AFTER CODE:        review(qa): → review(ui): → review(devops): — ALL THREE REQUIRED
+COMMIT MESSAGE:    type: description (test:, feat:, fix:, refactor:, review:, docs:, chore:)
 NEVER:             --no-verify, skip hooks, commit PII, dead code, untyped code
-ALWAYS:            TDD, 90% coverage, type hints, docstrings, clean workspace
+ALWAYS:            TDD, 90% coverage, type hints, docstrings, clean workspace, review commits
+AMEND PROCESS:     docs: amend <filename> — <what> (use after retrospectives or review findings)
 ```

@@ -48,6 +48,7 @@ dev = [
     "mypy>=1.7.0",
     "bandit[toml]>=1.7.6",
     "pre-commit>=3.6.0",
+    "vulture>=2.11",
 ]
 
 [project.urls]
@@ -183,3 +184,25 @@ skips = ["B101"]  # Skip assert warnings in non-test code (we use them sparingly
 dev = [
     "detect-secrets (>=1.5.0,<2.0.0)"
 ]
+
+# =============================================================================
+# Vulture Configuration (dead code detection)
+# =============================================================================
+[tool.vulture]
+min_confidence = 80
+paths = ["src/"]
+ignore_names = ["cls"]  # Pydantic @classmethod validator parameter; required by protocol
+
+# =============================================================================
+# Commitizen Configuration
+# =============================================================================
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version = "0.1.0"
+major_version_zero = true
+update_changelog_on_bump = false
+
+[tool.commitizen.customize]
+# Extends conventional commits with review: (3-round self-review evidence commits)
+schema_pattern = "^(feat|fix|refactor|perf|test|docs|chore|build|ci|style|revert|review)(\\(.*\\))?(!)?: .+"

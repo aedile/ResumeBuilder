@@ -68,6 +68,16 @@ repos:
         exclude: 'sample_data/.*'
 
   # ==========================================================================
+  # Dead code detection with Vulture
+  # ==========================================================================
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.13
+    hooks:
+      - id: vulture
+        pass_filenames: false
+        args: ["src/"]
+
+  # ==========================================================================
   # Secret detection with gitleaks
   # ==========================================================================
   - repo: https://github.com/gitleaks/gitleaks
