@@ -662,9 +662,7 @@ class TestAssessProfessionalism:
 
     def test_informal_language_is_flagged(self) -> None:
         """assess_professionalism flags informal/vague language."""
-        result = assess_professionalism(
-            text="Helped out with some stuff. Did things for the team."
-        )
+        result = assess_professionalism(text="Helped out with some stuff. Did things for the team.")
         data = json.loads(result)
         assert data["professionalism_score"] < 80
 
