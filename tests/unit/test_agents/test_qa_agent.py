@@ -165,7 +165,8 @@ class TestQAAgentReview:
         """review() returns a QAReport with suggestions from API response."""
         agent = QAAgent(client=mock_client)
         result = await agent.review(_HTML_FIXTURE)
-        assert len(result.suggestions) >= 0
+        assert len(result.suggestions) == 1
+        assert "Summary" in result.suggestions[0]
 
     async def test_review_sends_html_in_message(self, mock_client: MagicMock) -> None:
         """review() includes the HTML content in the API message."""
@@ -269,6 +270,13 @@ class TestQAReportModel:
         """QAReport layout_score is an integer."""
         report = QAReport(layout_score=75)
         assert isinstance(report.layout_score, int)
+
+    def test_qa_report_layout_score_rejects_out_of_range(self) -> None:
+        """QAReport layout_score must be between 0 and 100 inclusive."""
+        with pytest.raises(ValidationError):
+            QAReport(layout_score=-1)
+        with pytest.raises(ValidationError):
+            QAReport(layout_score=101)
 
     def test_qa_report_issues_is_list(self) -> None:
         """QAReport issues is a list."""

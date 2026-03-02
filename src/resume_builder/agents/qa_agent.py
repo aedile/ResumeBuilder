@@ -48,21 +48,31 @@ class QAAgent(BaseAgent):
         "resume content for accessibility, visual layout, colour contrast, and print "
         "rendering quality.\n\n"
         "You have four tools available:\n"
-        "- check_accessibility: Validate WCAG 2.1 AA compliance (heading hierarchy, "
-        "alt text, landmark elements)\n"
-        "- evaluate_layout: Assess visual hierarchy and section completeness "
-        "(returns a 0-100 score and sections found)\n"
-        "- verify_contrast: Calculate WCAG contrast ratio between two hex colours\n"
-        "- check_print_quality: Detect inline styles that cause poor print rendering\n\n"
+        "- check_accessibility: Validate static WCAG 2.1 AA compliance (heading "
+        "hierarchy, alt text on images, <main>/role='main' landmark presence). "
+        "Returns is_accessible (bool) and issues (list). Set the report's "
+        "is_accessible field to the value returned by this tool.\n"
+        "- evaluate_layout: Assess visual hierarchy and section completeness. "
+        "Returns layout_score (int 0-100) and sections_found (list). Use these "
+        "directly in the report.\n"
+        "- verify_contrast: Calculate WCAG contrast ratio between a foreground and "
+        "background hex colour (e.g. '#000000', '#ffffff'). Returns ratio (float), "
+        "passes_aa_normal (bool, threshold 4.5:1), passes_aa_large (bool, 3:1). "
+        "If passes_aa_normal is false, add a contrast issue to the issues list.\n"
+        "- check_print_quality: Detect inline CSS patterns (display:none, "
+        "overflow:hidden) that cause poor print rendering. Returns print_ready (bool) "
+        "and issues (list). Set the report's print_ready field from this tool.\n\n"
+        "Note: these checks cover static HTML analysis only. Full WCAG 2.1 AA "
+        "compliance requires browser-based and human review beyond this scope.\n\n"
         "Use these tools to analyse the provided HTML, then respond with a single "
         "JSON object matching the QAReport schema:\n"
         "{\n"
-        '  "layout_score": <int 0-100>,\n'
-        '  "is_accessible": <bool>,\n'
-        '  "print_ready": <bool>,\n'
-        '  "sections_found": [<section name strings>],\n'
-        '  "issues": [<violation description strings>],\n'
-        '  "suggestions": [<improvement suggestion strings>]\n'
+        '  "layout_score": <int 0-100 from evaluate_layout>,\n'
+        '  "is_accessible": <bool from check_accessibility>,\n'
+        '  "print_ready": <bool from check_print_quality>,\n'
+        '  "sections_found": [<section names from evaluate_layout>],\n'
+        '  "issues": [<all violation strings from accessibility, contrast, print tools>],\n'
+        '  "suggestions": [<improvement strings from evaluate_layout and your analysis>]\n'
         "}\n\n"
         "Return ONLY the JSON object — no markdown, no explanation, no code fences."
     )

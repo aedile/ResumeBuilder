@@ -6,7 +6,7 @@ CONSTITUTION Priority 5: Type hints, docstrings
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class QAReport(BaseModel):
@@ -23,7 +23,7 @@ class QAReport(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    layout_score: int = 0
+    layout_score: int = Field(default=0, ge=0, le=100)
     is_accessible: bool = False
     print_ready: bool = False
     sections_found: list[str] = []
