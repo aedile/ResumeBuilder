@@ -1,6 +1,6 @@
 # Resume Builder Autonomous Development Prompt
 
-**Version**: 1.3.0
+**Version**: 1.4.0
 **Last Updated**: 2026-03-02
 **Status**: Active
 **Governed By**: [CONSTITUTION.md](CONSTITUTION.md)
@@ -70,10 +70,12 @@ You are an autonomous development agent working on **Resume Builder**, a profess
   - Commit: `feat/fix: implement [feature]`
 - **REFACTOR Phase**: Improve code quality while tests pass
   - Commit: `refactor: improve [feature] quality`
-- **REVIEW Phase**: Run 3-round self-review; commit findings (mandatory even if no findings)
+- **REVIEW Phase**: Spawn specialized subagents; commit findings + retro notes (mandatory)
   - Commit: `review(qa): [task] — PASS` or `review(qa): [task] — FINDING`
   - Commit: `review(ui-ux): [task] — PASS/SKIP`
   - Commit: `review(devops): [task] — PASS`
+  - Commit: `review(arch): [task] — PASS/SKIP` *(when structural changes are present)*
+  - Commit: `docs: update RETRO_LOG for [task]`
   - See Phase 4 for exact checklist and commit body format.
 
 ### Priority 4: Comprehensive Testing (90%+ Coverage MANDATORY)
@@ -364,9 +366,13 @@ Summary: <2-3 sentences describing what was implemented and why>
 <output of: git diff main..HEAD>
 ```
 
-#### Step 2: Spawn All Three Reviewers in Parallel
+#### Step 2: Spawn Reviewers in Parallel
 
-**In a single message**, invoke all three using the Task tool with `subagent_type="general-purpose"`. They run concurrently — no need to wait for one before starting the next.
+**In a single message**, invoke reviewers using the Task tool with `subagent_type="general-purpose"`. They run concurrently — no need to wait for one before starting the next.
+
+**Always spawn**: `qa-reviewer`, `ui-ux-reviewer`, `devops-reviewer`
+
+**Also spawn `architecture-reviewer`** when the diff touches any of: `models/`, `agents/`, `parsers/`, `generators/`, `api/`, or any new `.py` file under `src/`. It will self-scope if the change turns out not to be structural.
 
 For each reviewer, prepend the full contents of its agent definition file to the context block:
 
@@ -399,12 +405,34 @@ Read each agent's response. For each finding:
 
 #### Step 4: Create review: Commits
 
-One commit per reviewer, using their output as the body:
+One commit per reviewer, using their full output (including Retrospective Note) as the commit body:
 
 ```
 review(qa): <task-id> — PASS/FINDING
 review(ui-ux): <task-id> — PASS/FINDING/SKIP
 review(devops): <task-id> — PASS/FINDING
+review(arch): <task-id> — PASS/FINDING/SKIP  ← only when architecture-reviewer was spawned
+```
+
+#### Step 5: Update RETRO_LOG
+
+After all review: commits are created, append each agent's Retrospective Note to `docs/RETRO_LOG.md`:
+
+```markdown
+### [YYYY-MM-DD] <task-id> — <task-name> (PR #<n>)
+
+**QA**: <paste agent's Retrospective Note text>
+
+**UI/UX**: <paste agent's Retrospective Note text>
+
+**DevOps**: <paste agent's Retrospective Note text>
+
+**Architecture** *(if spawned)*: <paste agent's Retrospective Note text>
+```
+
+Commit this update as part of the review phase:
+```
+docs: update RETRO_LOG for <task-id>
 ```
 
 #### Review Commit Format Reference
@@ -417,28 +445,40 @@ dead-code:              PASS
 reachable-handlers:     PASS
 exception-specificity:  PASS
 silent-failures:        PASS
+coverage-gate:          PASS — 96.2%
 edge-cases:             PASS
 error-paths:            PASS
 public-api-coverage:    PASS
 meaningful-asserts:     PASS
 docstring-accuracy:     PASS
 type-annotation-accuracy: PASS
+
+Overall: PASS
+
+## Retrospective Note
+
+<agent's retrospective observation>
 ```
 
 **FINDING example:**
 ```
 review(devops): P3-T01 QAAgent — FINDING
 
-no-hardcoded-secrets:   PASS
-no-secrets-in-logs:     FINDING — qa_result dict logged at DEBUG includes raw text
-                                   Action: wrap log call in pii_filter() [fixed]
-input-validation:       PASS
-dependency-audit:       SKIP — no new deps
+hardcoded-credentials:     PASS
+no-pii-in-code:            PASS
+no-auth-material-in-logs:  FINDING — qa_result dict logged at DEBUG includes raw text
+                                      Action: wrap log call in pii_filter() [fixed]
+input-validation:          PASS
+exception-exposure:        PASS
+bandit:                    PASS
+dependency-audit:          SKIP — no new deps
 logging-level-appropriate: PASS
-no-blocking-async:      PASS
-env-example-updated:    SKIP — no new env vars
-no-hook-bypasses:       PASS
-ci-health:              PASS
+pii-filter-used:           SKIP — no new logging of user content
+no-blocking-async:         PASS
+structured-logging:        PASS
+env-example-updated:       SKIP — no new env vars
+no-bypass-flags:           PASS
+ci-health:                 PASS
 ```
 
 **SKIP example (UI/UX on backend-only change):**
@@ -457,7 +497,9 @@ Each agent's full checklist is in its definition file. For reference:
 
 **UI/UX**: contrast, focus-indicators, keyboard-nav, skip-links, html-semantic, landmark-regions, form-labels, error-association, required-fields, aria-labels, loading-states, error-messages
 
-**DevOps**: no-hardcoded-secrets, no-pii-in-code, no-secrets-in-logs, input-validation, exception-exposure, bandit, logging-level-appropriate, pii-filter-used, no-blocking-async, structured-logging, dependency-audit, env-example-updated, no-hook-bypasses, ci-health
+**DevOps**: hardcoded-credentials, no-pii-in-code, no-auth-material-in-logs, input-validation, exception-exposure, bandit, logging-level-appropriate, pii-filter-used, no-blocking-async, structured-logging, dependency-audit, env-example-updated, no-bypass-flags, ci-health
+
+**Architecture** *(scope-gated — spawn when diff touches models/, agents/, parsers/, generators/, api/, or new src/ files)*: file-placement, naming-conventions, dependency-direction, no-langchain, async-correctness, abstraction-level, interface-contracts, model-integrity, adr-compliance
 
 ### Phase 5: Create Pull Request for User Review
 
@@ -680,11 +722,13 @@ During development, continuously verify:
 After completing task, before merging:
 
 - [ ] Run all quality checks (tests, lint, type, security, vulture)
-- [ ] Execute 3-round self-review (QA → UI/UX → DevOps)
-- [ ] Committed `review(qa):` with itemized checklist results
-- [ ] Committed `review(ui-ux):` with itemized checklist results (or SKIP with reason)
-- [ ] Committed `review(devops):` with itemized checklist results
-- [ ] No self-review loops detected
+- [ ] Spawn review subagents in parallel (qa-reviewer, ui-ux-reviewer, devops-reviewer, architecture-reviewer if structural)
+- [ ] Committed `review(qa):` with itemized checklist results + Retrospective Note
+- [ ] Committed `review(ui-ux):` with itemized checklist results + Retrospective Note (or SKIP with reason)
+- [ ] Committed `review(devops):` with itemized checklist results + Retrospective Note
+- [ ] Committed `review(arch):` if structural changes (or SKIP with reason) + Retrospective Note
+- [ ] Committed `docs: update RETRO_LOG for <task-id>`
+- [ ] No review loops detected (same finding 3+ cycles → escalate to human)
 - [ ] Update `docs/REVIEW_FINDINGS.md` if any finding was non-trivial
 - [ ] Assess whether a constitutional amendment is warranted
 - [ ] Create pull request with comprehensive summary
@@ -724,6 +768,10 @@ Failure to follow the CONSTITUTION will result in rejected code and wasted effor
   (qa-reviewer, ui-ux-reviewer, devops-reviewer) defined in .claude/agents/; added
   pr-describer agent for Phase 5 PR body generation; updated Phase 4 workflow to spawn
   all three reviewers concurrently in a single message
+- 1.4.0 (2026-03-02): Added architecture-reviewer agent (scope-gated to structural changes);
+  added Retrospective Note section to all review agents; created docs/RETRO_LOG.md living
+  ledger; added Phase 4 Step 5 (RETRO_LOG update); fixed stale DevOps label names in
+  examples; updated post-task checklist to include retro and architecture review steps
 
 ---
 
