@@ -129,6 +129,6 @@ logs/
 JOB_DESCRIPTION.txt
 
 # =============================================================================
-# Process artifacts (AI agent re-contextualization checklists)
+# Process artifacts
 # =============================================================================
-.recontextualization-*.md
+# (recontextualization checklists now live in docs/recontextualization/ and are committed)

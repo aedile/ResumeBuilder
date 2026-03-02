@@ -1,7 +1,7 @@
 # Resume Builder Autonomous Development Prompt
 
-**Version**: 1.2.0
-**Last Updated**: 2026-03-01
+**Version**: 1.3.0
+**Last Updated**: 2026-03-02
 **Status**: Active
 **Governed By**: [CONSTITUTION.md](CONSTITUTION.md)
 
@@ -72,7 +72,7 @@ You are an autonomous development agent working on **Resume Builder**, a profess
   - Commit: `refactor: improve [feature] quality`
 - **REVIEW Phase**: Run 3-round self-review; commit findings (mandatory even if no findings)
   - Commit: `review(qa): [task] — PASS` or `review(qa): [task] — FINDING`
-  - Commit: `review(ui): [task] — PASS/SKIP`
+  - Commit: `review(ui-ux): [task] — PASS/SKIP`
   - Commit: `review(devops): [task] — PASS`
   - See Phase 4 for exact checklist and commit body format.
 
@@ -336,165 +336,128 @@ If ANY check fails:
 - Re-run all checks
 - Do NOT proceed to self-review until all checks pass
 
-### Phase 4: 3-Round Self-Review Process
+### Phase 4: 3-Round Review via Specialized Subagents
 
-**CRITICAL**: This phase implements a 3-round self-review with specific checklists. Each round produces a mandatory `review:` commit — even when no issues are found. The commit body is the evidence that the review ran.
+**CRITICAL**: This phase delegates each review round to a specialized subagent defined in `.claude/agents/`. Each agent has fresh context and domain expertise — they did NOT implement the code and will surface issues the implementing agent may overlook. Each round still produces a mandatory `review:` commit as verifiable evidence.
 
-#### Self-Review Architecture
+#### Why Subagents
 
-**Workflow**:
+The implementing agent knows what was *intended* — reviewers must evaluate what was *actually produced*. Each agent:
+- Reads the constitution and project guidelines independently
+- Applies domain-specific expertise (QA, accessibility, security)
+- Provides a genuinely independent perspective
+
+#### Step 1: Prepare Review Context
+
+Before spawning reviewers, build a context block:
 
 ```
-Code Complete → QA Review → UI/UX Review → DevOps Review → Merge
-                    ↓            ↓              ↓
-                  FAIL?       FAIL?          FAIL?
-                    ↓            ↓              ↓
-               Reset ALL     Reset ALL      Reset ALL
-               Start Over    Start Over     Start Over
+## Review Context
+Task: <task-id> — <task-name>
+Branch: <branch-name>
+Changed files:
+  <list each changed file with a one-line description>
+
+Summary: <2-3 sentences describing what was implemented and why>
+
+## Git Diff
+<output of: git diff main..HEAD>
 ```
 
-**Reset Policy**: If ANY review fails, **CLEAR ALL PREVIOUS REVIEW STATUSES** and start from Round 1 (QA Review) again.
+#### Step 2: Spawn All Three Reviewers in Parallel
 
-**Loop Prevention**: If the same issue causes failures in 3+ consecutive iterations, STOP, document the loop, and request human feedback.
+**In a single message**, invoke all three using the Task tool with `subagent_type="general-purpose"`. They run concurrently — no need to wait for one before starting the next.
 
-#### Review Commit Format
+For each reviewer, prepend the full contents of its agent definition file to the context block:
 
-Every review round produces a commit with status in the subject and itemized results in the body.
+```
+You are acting as the `<agent-name>` specialized agent for this project.
+Your full role definition is below.
+
+---
+<full contents of .claude/agents/<agent-name>.md, excluding frontmatter>
+---
+
+<context block from Step 1>
+```
+
+The agent definition files (`.claude/agents/qa-reviewer.md`, etc.) contain the full checklist, bash commands, and output format instructions — include them verbatim so the subagent has complete guidance.
+
+> **Note**: Custom agent names (`qa-reviewer`, `ui-ux-reviewer`, `devops-reviewer`) are defined in `.claude/agents/` and will be directly invocable via `subagent_type` when that feature is available in the running version of Claude Code. Until then, use `general-purpose` with the agent definition embedded in the prompt as described above.
+
+#### Step 3: Process Findings
+
+Read each agent's response. For each finding:
+
+- **PASS / SKIP**: Use the agent's output verbatim in the `review:` commit body.
+- **FINDING (fixable)**: Fix the issue, note it as `FINDING (fixed)` in the commit body.
+- **FINDING (needs discussion)**: Stop, document the issue, request human input.
+
+**Reset Policy**: If ANY review surfaces an unfixed FINDING that requires code change, fix the code, then **re-run all three reviewers from the beginning** (spawn fresh instances — do not reuse prior results).
+
+**Loop Prevention**: If the same issue recurs across 3+ consecutive review cycles, STOP and request human feedback.
+
+#### Step 4: Create review: Commits
+
+One commit per reviewer, using their output as the body:
+
+```
+review(qa): <task-id> — PASS/FINDING
+review(ui-ux): <task-id> — PASS/FINDING/SKIP
+review(devops): <task-id> — PASS/FINDING
+```
+
+#### Review Commit Format Reference
 
 **PASS example:**
 ```
 review(qa): P3-T01 QAAgent — PASS
 
-dead-code: PASS
-reachable-handlers: PASS
-exception-specificity: PASS
-silent-failures: PASS
-edge-cases: PASS
-error-paths: PASS
-public-api-coverage: PASS
-meaningful-asserts: PASS
-docstring-accuracy: PASS
+dead-code:              PASS
+reachable-handlers:     PASS
+exception-specificity:  PASS
+silent-failures:        PASS
+edge-cases:             PASS
+error-paths:            PASS
+public-api-coverage:    PASS
+meaningful-asserts:     PASS
+docstring-accuracy:     PASS
 type-annotation-accuracy: PASS
 ```
 
-**FINDING example (fixing in same PR):**
+**FINDING example:**
 ```
 review(devops): P3-T01 QAAgent — FINDING
 
-no-hardcoded-secrets: PASS
-no-secrets-in-logs: FINDING — qa_result dict logged at DEBUG includes raw text
-  Action: wrap log call in pii_filter() [fixed in refactor: sanitize qa debug log]
-input-validation: PASS
-dependency-audit: SKIP — no new deps
-logging-appropriate: PASS
-no-blocking-async: PASS
-env-example-updated: SKIP — no new env vars
-no-hook-bypasses: PASS
-ci-health: PASS
+no-hardcoded-secrets:   PASS
+no-secrets-in-logs:     FINDING — qa_result dict logged at DEBUG includes raw text
+                                   Action: wrap log call in pii_filter() [fixed]
+input-validation:       PASS
+dependency-audit:       SKIP — no new deps
+logging-level-appropriate: PASS
+no-blocking-async:      PASS
+env-example-updated:    SKIP — no new env vars
+no-hook-bypasses:       PASS
+ci-health:              PASS
 ```
 
 **SKIP example (UI/UX on backend-only change):**
 ```
-review(ui): P3-T01 QAAgent — SKIP
+review(ui-ux): P3-T01 QAAgent — SKIP
 
-Scope: backend-only change (agents/, models/); no templates or routes modified.
+SCOPE: SKIP — no template/route/form changes detected.
+Files checked: src/resume_builder/templates/, src/resume_builder/static/, src/resume_builder/api/
 ```
 
-#### Round 1: QA Review Checklist
+#### Checklist Reference (authoritative copy lives in .claude/agents/)
 
-```
-QA REVIEW CHECKLIST
-Scope: <list files changed>
+Each agent's full checklist is in its definition file. For reference:
 
-Code Correctness:
-  dead-code:              Any functions/methods defined but never called?
-  reachable-handlers:     Can every exception handler actually be triggered?
-  exception-specificity:  Is any `except Exception` used without justification?
-  silent-failures:        Are exceptions swallowed without logging?
+**QA**: dead-code, reachable-handlers, exception-specificity, silent-failures, edge-cases, error-paths, public-api-coverage, meaningful-asserts, docstring-accuracy, type-annotation-accuracy
 
-Test Quality:
-  edge-cases:             Are None inputs, empty collections, boundaries tested?
-  error-paths:            Is the unhappy path tested (not just happy path)?
-  public-api-coverage:    Does every new public method have at least one test?
-  meaningful-asserts:     Do assertions verify behavior, not just non-None?
+**UI/UX**: contrast, focus-indicators, keyboard-nav, skip-links, html-semantic, landmark-regions, form-labels, error-association, required-fields, aria-labels, loading-states, error-messages
 
-Documentation:
-  docstring-accuracy:     Do docstrings match what the function actually does?
-  type-annotation-accuracy: Do return type annotations match actual returns?
-```
-
-**If FAIL**: Fix issues, reset all reviews, restart from Round 1.
-**If PASS or FINDING (fixed)**: Commit `review(qa): <task> — PASS/FINDING`, proceed to Round 2.
-
-#### Round 2: UI/UX Review Checklist
-
-**Scope gate — answer first:**
-```
-UI/UX SCOPE CHECK
-  Templates changed?     Y/N
-  New routes added?      Y/N
-  Forms added/modified?  Y/N
-
-If all N → commit review(ui) with SKIP + reason. Proceed to Round 3.
-```
-
-**If in scope:**
-```
-UI/UX REVIEW CHECKLIST
-
-Accessibility (WCAG 2.1 AA — NON-NEGOTIABLE):
-  contrast:           Text contrast ≥ 4.5:1 (3:1 for large text)?
-  keyboard-nav:       All interactive elements reachable via keyboard?
-  focus-indicators:   Focus visible on all interactive elements?
-  form-labels:        All inputs have associated <label> elements?
-  error-association:  Error messages programmatically linked to inputs?
-  aria-labels:        Non-text interactive elements have ARIA labels?
-
-UX Patterns:
-  loading-states:     All async operations show loading feedback?
-  error-messages:     Error messages human-readable and actionable?
-  ia-regression:      No information architecture regressions?
-  html-semantic:      HTML uses semantic elements (not generic divs for structure)?
-```
-
-**If FAIL**: Fix issues, reset all reviews, restart from Round 1.
-**If PASS, FINDING (fixed), or SKIP**: Commit `review(ui): <task> — PASS/FINDING/SKIP`, proceed to Round 3.
-
-#### Round 3: DevOps Review Checklist
-
-**Scope gate — answer first:**
-```
-DEVOPS SCOPE CHECK
-  New dependencies added?    Y/N
-  Env vars added/changed?    Y/N
-  CI/Dockerfile changed?     Y/N
-  New logging/error paths?   Y/N
-
-If all N → run security items only (lightweight pass).
-```
-
-**Full checklist:**
-```
-DEVOPS REVIEW CHECKLIST
-
-Security:
-  no-hardcoded-secrets:    No credentials, API keys, endpoints in code?
-  no-secrets-in-logs:      Error messages and log lines contain no PII/secrets?
-  input-validation:        All user input validated at system boundary?
-  dependency-audit:        New deps justified, pinned, and CVE-clean? (pip-audit)
-
-Observability:
-  logging-appropriate:     Errors logged, info-level not excessive, PII filtered?
-  no-blocking-async:       No sync I/O (time.sleep, requests) in async context?
-
-Infrastructure:
-  env-example-updated:     .env.example reflects any new env vars?
-  no-hook-bypasses:        No --no-verify or SKIP= in any committed commands?
-  ci-health:               CI still green after changes?
-```
-
-**If FAIL**: Fix issues, reset all reviews, restart from Round 1.
-**If PASS or FINDING (fixed)**: Commit `review(devops): <task> — PASS/FINDING`, proceed to Phase 5.
+**DevOps**: no-hardcoded-secrets, no-pii-in-code, no-secrets-in-logs, input-validation, exception-exposure, bandit, logging-level-appropriate, pii-filter-used, no-blocking-async, structured-logging, dependency-audit, env-example-updated, no-hook-bypasses, ci-health
 
 ### Phase 5: Create Pull Request for User Review
 
@@ -505,75 +468,51 @@ After ALL 3 reviews pass:
 1. **Create Feature Branch** (if not already on one)
 
    ```bash
-   git checkout -b feat/P0-T03-test-directory-structure
+   git checkout -b feat/P3-T01-qa-agent
    ```
 
-2. **Push Branch and Create Pull Request**
+2. **Generate PR Description via Subagent**
+
+   Spawn the `pr-describer` agent (`general-purpose` type, with `.claude/agents/pr-describer.md` content prepended) to draft the PR body:
+
+   ```
+   Task(subagent_type="general-purpose", prompt="""
+   You are acting as the `pr-describer` agent for this project.
+   <full contents of .claude/agents/pr-describer.md, excluding frontmatter>
+   ---
+   Task: <task-id> — <task-name>
+   Branch: <branch-name>
+   Summary: <what was implemented>
+   """)
+   ```
+
+   The agent will run `git log main..HEAD` and `git diff main..HEAD --stat` itself to gather full context. Use its output verbatim as the `--body` argument.
+
+3. **Push Branch and Create Pull Request**
 
    ```bash
-   git push origin feat/P0-T03-test-directory-structure
+   git push origin <branch-name>
 
    gh pr create \
-     --title "chore: setup test directory structure (P0-T03 ✅)" \
-     --body "$(cat <<EOF
-   ## Task
-   **P0-T03**: Setup Test Directory Structure
-
-   ## Summary
-   Reorganize tests/ directory into unit/, integration/, and fixtures/ subdirectories for better test organization per REQUIREMENTS.md specifications.
-
-   ## Changes
-   - ✅ Created `tests/unit/` directory with `__init__.py`
-   - ✅ Created `tests/integration/` directory with `__init__.py`
-   - ✅ Created `tests/fixtures/` with subdirectories: `linkedin/`, `jobs/`, `api_responses/`
-   - ✅ Moved `tests/test_models.py` → `tests/unit/test_models.py`
-   - ✅ Updated `tests/conftest.py` if needed for new paths
-
-   ## Acceptance Criteria Met
-   - [x] `tests/unit/` directory exists with `__init__.py`
-   - [x] `tests/integration/` directory exists with `__init__.py`
-   - [x] `tests/fixtures/` with proper subdirectories
-   - [x] Existing test file moved to unit/
-   - [x] pytest runs without import errors
-
-   ## Self-Review Status
-   - ✅ QA Review PASSED
-   - ✅ UI/UX Review PASSED (N/A for chore task)
-   - ✅ DevOps Review PASSED
-
-   ## CONSTITUTION Compliance
-   - ✅ Priority 0: Security (No secrets, no PII)
-   - ✅ Priority 1: Quality Gates (All pre-commit hooks pass)
-   - ✅ Priority 2: Source Control (Conventional commits, feature branch)
-
-   ## Test Results
-   ```bash
-   pytest tests/ --collect-only
-   # Expected: Tests discovered in new structure
-   ```
-
-   **BACKLOG**: P0-T03 ✅
-
-   ---
-   Generated with [Claude Code](https://claude.com/claude-code)
-
-   Co-Authored-By: Claude <noreply@anthropic.com>
+     --title "<conventional commit type>: <description> (<task-id>)" \
+     --body "$(cat <<'EOF'
+   <pr-describer output here>
    EOF
    )"
    ```
 
-3. **Wait for User Review**
+4. **Wait for User Review**
    - User will review PR and provide feedback
    - Make any requested changes in SAME branch
    - User will merge when approved
 
-4. **After User Merges**
+5. **After User Merges**
    - Switch back to main: `git checkout main`
    - Pull latest: `git pull origin main`
    - Update backlog to mark task complete
    - Re-contextualize and continue to next task
 
-5. **Re-contextualization After Merge**
+6. **Re-contextualization After Merge**
    - Read `CONSTITUTION.md`
    - Read `AUTONOMOUS_DEVELOPMENT_PROMPT.md`
    - Continue to next task
@@ -743,7 +682,7 @@ After completing task, before merging:
 - [ ] Run all quality checks (tests, lint, type, security, vulture)
 - [ ] Execute 3-round self-review (QA → UI/UX → DevOps)
 - [ ] Committed `review(qa):` with itemized checklist results
-- [ ] Committed `review(ui):` with itemized checklist results (or SKIP with reason)
+- [ ] Committed `review(ui-ux):` with itemized checklist results (or SKIP with reason)
 - [ ] Committed `review(devops):` with itemized checklist results
 - [ ] No self-review loops detected
 - [ ] Update `docs/REVIEW_FINDINGS.md` if any finding was non-trivial
@@ -781,6 +720,10 @@ Failure to follow the CONSTITUTION will result in rejected code and wasted effor
   type with itemized findings format; added vulture dead-code scan to quality gates; added
   constitutional amendment protocol; expanded post-task checklist to require review commits
   and REVIEW_FINDINGS.md updates
+- 1.3.0 (2026-03-02): Replaced manual self-review with parallel specialized subagents
+  (qa-reviewer, ui-ux-reviewer, devops-reviewer) defined in .claude/agents/; added
+  pr-describer agent for Phase 5 PR body generation; updated Phase 4 workflow to spawn
+  all three reviewers concurrently in a single message
 
 ---
 
