@@ -12,13 +12,21 @@ import json
 import pytest
 
 from resume_builder.agents.tools.review import (
+    ASSESS_PROFESSIONALISM_TOOL,
     CHECK_ACCESSIBILITY_TOOL,
+    CHECK_GRAMMAR_TOOL,
     CHECK_PRINT_QUALITY_TOOL,
+    DETECT_PLACEHOLDERS_TOOL,
     EVALUATE_LAYOUT_TOOL,
+    VALIDATE_FORMATTING_TOOL,
     VERIFY_CONTRAST_TOOL,
+    assess_professionalism,
     check_accessibility,
+    check_grammar,
     check_print_quality,
+    detect_placeholders,
     evaluate_layout,
+    validate_formatting,
     verify_contrast,
 )
 from resume_builder.models.agent import ToolDefinition
@@ -424,3 +432,305 @@ class TestReviewToolDefinitions:
     def test_check_print_quality_tool_name(self) -> None:
         """CHECK_PRINT_QUALITY_TOOL has the expected name."""
         assert CHECK_PRINT_QUALITY_TOOL.name == "check_print_quality"
+
+    @pytest.mark.parametrize(
+        "tool",
+        [
+            CHECK_GRAMMAR_TOOL,
+            VALIDATE_FORMATTING_TOOL,
+            ASSESS_PROFESSIONALISM_TOOL,
+            DETECT_PLACEHOLDERS_TOOL,
+        ],
+    )
+    def test_hr_tool_is_tool_definition(self, tool: ToolDefinition) -> None:
+        """Each HR tool constant is a ToolDefinition instance."""
+        assert isinstance(tool, ToolDefinition)
+
+    @pytest.mark.parametrize(
+        "tool",
+        [
+            CHECK_GRAMMAR_TOOL,
+            VALIDATE_FORMATTING_TOOL,
+            ASSESS_PROFESSIONALISM_TOOL,
+            DETECT_PLACEHOLDERS_TOOL,
+        ],
+    )
+    def test_hr_tool_has_valid_input_schema(self, tool: ToolDefinition) -> None:
+        """Each HR tool definition has a valid JSON Schema object."""
+        schema = tool.input_schema
+        assert schema.get("type") == "object"
+        assert "properties" in schema
+        assert "required" in schema
+
+    def test_check_grammar_tool_name(self) -> None:
+        """CHECK_GRAMMAR_TOOL has the expected name."""
+        assert CHECK_GRAMMAR_TOOL.name == "check_grammar"
+
+    def test_validate_formatting_tool_name(self) -> None:
+        """VALIDATE_FORMATTING_TOOL has the expected name."""
+        assert VALIDATE_FORMATTING_TOOL.name == "validate_formatting"
+
+    def test_assess_professionalism_tool_name(self) -> None:
+        """ASSESS_PROFESSIONALISM_TOOL has the expected name."""
+        assert ASSESS_PROFESSIONALISM_TOOL.name == "assess_professionalism"
+
+    def test_detect_placeholders_tool_name(self) -> None:
+        """DETECT_PLACEHOLDERS_TOOL has the expected name."""
+        assert DETECT_PLACEHOLDERS_TOOL.name == "detect_placeholders"
+
+
+# ---------------------------------------------------------------------------
+# check_grammar
+# ---------------------------------------------------------------------------
+
+
+class TestCheckGrammar:
+    """Tests for check_grammar tool function."""
+
+    def test_clean_text_has_no_issues(self) -> None:
+        """check_grammar passes clean, well-formed resume text."""
+        text = (
+            "Designed and implemented distributed microservices. "
+            "Led a team of five engineers. "
+            "Reduced deployment time by 40 percent."
+        )
+        result = check_grammar(text=text)
+        data = json.loads(result)
+        assert data["has_issues"] is False
+        assert data["issues"] == []
+
+    def test_double_space_is_flagged(self) -> None:
+        """check_grammar flags double spaces in text."""
+        result = check_grammar(text="Designed  and implemented systems.")
+        data = json.loads(result)
+        assert data["has_issues"] is True
+        assert any("space" in issue.lower() for issue in data["issues"])
+
+    def test_sentence_missing_capitalisation_is_flagged(self) -> None:
+        """check_grammar flags sentence starting with lowercase after period."""
+        result = check_grammar(text="Built APIs. deployed to production.")
+        data = json.loads(result)
+        assert data["has_issues"] is True
+        assert any("capital" in issue.lower() for issue in data["issues"])
+
+    def test_returns_json_string(self) -> None:
+        """check_grammar always returns a valid JSON string."""
+        result = check_grammar(text="Built systems.")
+        data = json.loads(result)
+        assert "has_issues" in data
+        assert "issues" in data
+
+    def test_issues_are_strings(self) -> None:
+        """check_grammar issues field contains only strings."""
+        result = check_grammar(text="built  systems.  deployed them.")
+        data = json.loads(result)
+        assert isinstance(data["issues"], list)
+        for issue in data["issues"]:
+            assert isinstance(issue, str)
+
+    def test_empty_text_returns_no_issues(self) -> None:
+        """check_grammar returns no issues for empty text (nothing to check)."""
+        result = check_grammar(text="")
+        data = json.loads(result)
+        assert isinstance(data["issues"], list)
+
+    def test_weak_phrase_is_flagged(self) -> None:
+        """check_grammar flags weak phrases like 'responsible for'."""
+        result = check_grammar(text="Responsible for managing the team.")
+        data = json.loads(result)
+        assert data["has_issues"] is True
+        assert any("responsible for" in issue.lower() for issue in data["issues"])
+
+
+# ---------------------------------------------------------------------------
+# validate_formatting
+# ---------------------------------------------------------------------------
+
+
+class TestValidateFormatting:
+    """Tests for validate_formatting tool function."""
+
+    def test_consistent_month_year_format_passes(self) -> None:
+        """validate_formatting passes text with consistent Month YYYY dates."""
+        text = "January 2020 to March 2022. June 2018 to December 2019."
+        result = validate_formatting(text=text)
+        data = json.loads(result)
+        assert data["is_consistent"] is True
+
+    def test_mixed_date_formats_are_flagged(self) -> None:
+        """validate_formatting flags mixed date formats (MM/YYYY vs Month YYYY)."""
+        text = "January 2020 to 03/2022. Experience from 2018."
+        result = validate_formatting(text=text)
+        data = json.loads(result)
+        assert data["is_consistent"] is False
+        assert any("date" in issue.lower() for issue in data["issues"])
+
+    def test_returns_json_string(self) -> None:
+        """validate_formatting always returns a valid JSON string."""
+        result = validate_formatting(text="January 2020 to March 2022.")
+        data = json.loads(result)
+        assert "is_consistent" in data
+        assert "issues" in data
+
+    def test_issues_are_strings(self) -> None:
+        """validate_formatting issues field contains only strings."""
+        result = validate_formatting(text="Jan 2020 to 03/2022.")
+        data = json.loads(result)
+        for issue in data["issues"]:
+            assert isinstance(issue, str)
+
+    def test_empty_text_is_consistent(self) -> None:
+        """validate_formatting treats empty text as consistent (no formats to compare)."""
+        result = validate_formatting(text="")
+        data = json.loads(result)
+        assert data["is_consistent"] is True
+
+    def test_no_dates_is_consistent(self) -> None:
+        """validate_formatting treats text with no dates as consistent."""
+        result = validate_formatting(text="Led engineering teams and shipped features.")
+        data = json.loads(result)
+        assert data["is_consistent"] is True
+
+    def test_single_date_format_is_consistent(self) -> None:
+        """validate_formatting accepts text with only one date style."""
+        result = validate_formatting(text="01/2020 to 03/2022. 06/2018 to 12/2019.")
+        data = json.loads(result)
+        assert data["is_consistent"] is True
+
+
+# ---------------------------------------------------------------------------
+# assess_professionalism
+# ---------------------------------------------------------------------------
+
+
+class TestAssessProfessionalism:
+    """Tests for assess_professionalism tool function."""
+
+    def test_professional_text_scores_high(self) -> None:
+        """assess_professionalism gives high score to action-verb-led bullet points."""
+        text = (
+            "Designed and implemented distributed microservices. "
+            "Led cross-functional team of engineers. "
+            "Reduced latency by 30 percent."
+        )
+        result = assess_professionalism(text=text)
+        data = json.loads(result)
+        assert data["professionalism_score"] >= 70
+
+    def test_first_person_pronoun_is_flagged(self) -> None:
+        """assess_professionalism flags first-person pronouns."""
+        result = assess_professionalism(text="I designed the system. I led the team.")
+        data = json.loads(result)
+        assert any(
+            "first-person" in issue.lower() or "pronoun" in issue.lower()
+            for issue in data["issues"]
+        )
+
+    def test_contraction_is_flagged(self) -> None:
+        """assess_professionalism flags contractions."""
+        result = assess_professionalism(text="I didn't miss a deadline. I couldn't fail.")
+        data = json.loads(result)
+        assert any("contraction" in issue.lower() for issue in data["issues"])
+
+    def test_returns_json_string(self) -> None:
+        """assess_professionalism always returns a valid JSON string."""
+        result = assess_professionalism(text="Led the team.")
+        data = json.loads(result)
+        assert "professionalism_score" in data
+        assert "issues" in data
+        assert "suggestions" in data
+
+    def test_score_is_int_0_to_100(self) -> None:
+        """assess_professionalism score is an integer between 0 and 100."""
+        result = assess_professionalism(text="Led the team.")
+        data = json.loads(result)
+        assert isinstance(data["professionalism_score"], int)
+        assert 0 <= data["professionalism_score"] <= 100
+
+    def test_empty_text_returns_zero_score(self) -> None:
+        """assess_professionalism returns score of 0 for empty text."""
+        result = assess_professionalism(text="")
+        data = json.loads(result)
+        assert data["professionalism_score"] == 0
+
+    def test_suggestions_are_strings(self) -> None:
+        """assess_professionalism suggestions are strings."""
+        result = assess_professionalism(text="I was responsible for the project.")
+        data = json.loads(result)
+        for suggestion in data["suggestions"]:
+            assert isinstance(suggestion, str)
+
+    def test_informal_language_is_flagged(self) -> None:
+        """assess_professionalism flags informal/vague language."""
+        result = assess_professionalism(
+            text="Helped out with some stuff. Did things for the team."
+        )
+        data = json.loads(result)
+        assert data["professionalism_score"] < 80
+
+
+# ---------------------------------------------------------------------------
+# detect_placeholders
+# ---------------------------------------------------------------------------
+
+
+class TestDetectPlaceholders:
+    """Tests for detect_placeholders tool function."""
+
+    def test_clean_text_has_no_placeholders(self) -> None:
+        """detect_placeholders passes clean resume text."""
+        text = (
+            "Alex Chen — Software Engineer at Acme Corp. "
+            "Led distributed systems projects from 2018 to 2022."
+        )
+        result = detect_placeholders(text=text)
+        data = json.loads(result)
+        assert data["has_placeholders"] is False
+        assert data["placeholders_found"] == []
+
+    def test_lorem_ipsum_is_flagged(self) -> None:
+        """detect_placeholders catches Lorem ipsum text."""
+        result = detect_placeholders(
+            text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        )
+        data = json.loads(result)
+        assert data["has_placeholders"] is True
+        assert any("lorem" in p.lower() for p in data["placeholders_found"])
+
+    def test_xxx_marker_is_flagged(self) -> None:
+        """detect_placeholders catches XXX placeholder markers."""
+        result = detect_placeholders(text="Contact me at XXX or reach out via XXX-XXX-XXXX.")
+        data = json.loads(result)
+        assert data["has_placeholders"] is True
+
+    def test_todo_marker_is_flagged(self) -> None:
+        """detect_placeholders catches TODO and TBD markers."""
+        result = detect_placeholders(text="Summary: TODO. References: TBD.")
+        data = json.loads(result)
+        assert data["has_placeholders"] is True
+
+    def test_bracket_placeholder_is_flagged(self) -> None:
+        """detect_placeholders catches bracket-style placeholders like [Name] or [Company]."""
+        result = detect_placeholders(text="[Your Name] at [Company Name], [City].")
+        data = json.loads(result)
+        assert data["has_placeholders"] is True
+        assert len(data["placeholders_found"]) >= 1
+
+    def test_returns_json_string(self) -> None:
+        """detect_placeholders always returns a valid JSON string."""
+        result = detect_placeholders(text="Built systems.")
+        data = json.loads(result)
+        assert "has_placeholders" in data
+        assert "placeholders_found" in data
+
+    def test_placeholders_found_is_list(self) -> None:
+        """detect_placeholders placeholders_found is a list."""
+        result = detect_placeholders(text="TODO: add summary.")
+        data = json.loads(result)
+        assert isinstance(data["placeholders_found"], list)
+
+    def test_example_email_is_flagged(self) -> None:
+        """detect_placeholders catches example@example.com style template emails."""
+        result = detect_placeholders(text="Contact: your.email@example.com")
+        data = json.loads(result)
+        assert data["has_placeholders"] is True
