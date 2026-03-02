@@ -28,7 +28,7 @@ You should see:
 
 2. **On feature branch (feat/PX-TXX-*):**
    - Extracts task ID (e.g., P1-T09)
-   - Checks for `.recontextualization-P1-T09.md`
+   - Checks for `docs/recontextualization/recontextualization-P1-T09.md`
    - Blocks commit if file missing or incomplete
    - Validates checklist has actual content (not just template)
 
@@ -39,13 +39,13 @@ You should see:
    git pull origin main
 
    # Create checklist BEFORE creating feature branch
-   cp .recontextualization-template.md .recontextualization-P1-T09.md
+   cp .git-hooks/checklist-template.md docs/recontextualization/recontextualization-P1-T09.md
 
    # Fill out checklist with EVIDENCE from previous PR
    # (Review commits, run tests, check coverage, verify criteria)
 
    # Commit checklist FIRST
-   git add .recontextualization-P1-T09.md
+   git add docs/recontextualization/recontextualization-P1-T09.md
    git commit -m "chore: complete re-contextualization for P1-T09"
 
    # NOW create feature branch

@@ -140,6 +140,7 @@ fix/P1-T03-date-parsing-bug
 | `tests/fixtures/` | Test data (fictional) | Committed |
 | `sample_data/` | Demo LinkedIn data (fictional) | Committed |
 | `docs/adr/` | Architecture decisions | Committed |
+| `docs/recontextualization/` | Task-transition checklists | Committed |
 | `data/` | Real user LinkedIn data | **GITIGNORED** |
 | `output/` | Generated resumes | **GITIGNORED** |
 | `logs/` | Application logs | **GITIGNORED** |
