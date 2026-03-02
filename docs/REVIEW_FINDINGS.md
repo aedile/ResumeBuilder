@@ -35,9 +35,9 @@ here for completeness. See `docs/RETROSPECTIVE-PHASE2.md` for full context.
 
 | PR | Task | Round | Finding | Status |
 |----|------|-------|---------|--------|
-| #15 | P2-T11 | Post-phase audit | `_parse_year()` dead code; `int()` used instead without try/except (`parsers/education.py:12`) | deferred → pre-Phase-3 cleanup |
-| #15 | P2-T06 | Post-phase audit | `TemplateNotFound` handler unreachable (`generators/html.py:47`) | deferred → pre-Phase-3 cleanup |
-| #14 | P2-T09 | Post-phase audit | `_handle_tool_calls()` swallows unknown tools silently (`agents/base.py`) | deferred → pre-Phase-3 cleanup |
+| pre-Phase-3 | P2-T11 | Post-phase audit | `_parse_year()` dead code; `int()` used instead without try/except (`parsers/education.py:12`) | fixed (PR #17) |
+| pre-Phase-3 | P2-T06 | Post-phase audit | `TemplateNotFound` handler unreachable (`generators/html.py:47`) | fixed (PR #17) |
+| pre-Phase-3 | P2-T09 | Post-phase audit | `_handle_tool_calls()` swallows unknown tools silently (`agents/base.py`) | fixed (PR #17) |
 | #14 | P2-T08 | Post-phase audit | `MatcherAgent.analyze()` sends computed fields in prompt — token waste | deferred → Phase 3 (NFR-7) |
-| #13 | P2-T10 | Post-phase audit | `except Exception` too broad in `parse_csv()` and `OrchestratorAgent.run()` | deferred → pre-Phase-3 cleanup |
-| #14 | P2-T11 | Post-phase audit | `FinalResult.resume` names collision — holds `OptimizedResume` not `Resume` | deferred → pre-Phase-3 cleanup |
+| pre-Phase-3 | P2-T10 | Post-phase audit | `except Exception` too broad in `parse_csv()` (`agents/tools/parsing.py`) | fixed (PR #17) |
+| pre-Phase-3 | P2-T11 | Post-phase audit | `FinalResult.resume` naming collision — holds `OptimizedResume` not `Resume` | fixed (PR #17) |
