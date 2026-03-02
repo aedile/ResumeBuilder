@@ -58,10 +58,12 @@ Every code change follows this exact sequence - no exceptions:
    ```
    - Commit: `refactor: improve <feature>`
 
-4. **REVIEW**: Run 3-round self-review (MANDATORY — even if no issues found)
-   - Three commits required: `review(qa):`, `review(ui):`, `review(devops):`
-   - Each commit body contains itemized checklist results (PASS / FINDING / SKIP)
-   - See `AUTONOMOUS_DEVELOPMENT_PROMPT.md § Phase 4` for exact checklists and format
+4. **REVIEW**: Spawn three specialized subagents in parallel (MANDATORY)
+   - In ONE message, invoke: `qa-reviewer`, `ui-ux-reviewer`, `devops-reviewer` via Task tool
+   - Each agent reads the constitution independently and reviews with fresh context
+   - Three commits required: `review(qa):`, `review(ui-ux):`, `review(devops):`
+   - Each commit body is the agent's structured finding (PASS / FINDING / SKIP per item)
+   - See `AUTONOMOUS_DEVELOPMENT_PROMPT.md § Phase 4` and `.claude/agents/` for agent definitions
    - Commit: `review(qa): <task> — PASS/FINDING` (+ body with per-item results)
 
 ### Quality Gates (All Must Pass)
@@ -141,6 +143,7 @@ fix/P1-T03-date-parsing-bug
 | `sample_data/` | Demo LinkedIn data (fictional) | Committed |
 | `docs/adr/` | Architecture decisions | Committed |
 | `docs/recontextualization/` | Task-transition checklists | Committed |
+| `.claude/agents/` | Specialized review subagents | Committed |
 | `data/` | Real user LinkedIn data | **GITIGNORED** |
 | `output/` | Generated resumes | **GITIGNORED** |
 | `logs/` | Application logs | **GITIGNORED** |
@@ -382,7 +385,7 @@ git commit -m "..."             # Recommit without PII
 BEFORE CODING:     Read task spec → Create branch → Write failing test
 WHILE CODING:      Minimal implementation → Pass tests → Refactor
 BEFORE COMMIT:     git status → git diff → ruff → mypy → pytest → vulture → pre-commit
-AFTER CODE:        review(qa): → review(ui): → review(devops): — ALL THREE REQUIRED
+AFTER CODE:        Spawn qa-reviewer + ui-ux-reviewer + devops-reviewer in ONE parallel message → three review: commits
 COMMIT MESSAGE:    type: description (test:, feat:, fix:, refactor:, review:, docs:, chore:)
 NEVER:             --no-verify, skip hooks, commit PII, dead code, untyped code
 ALWAYS:            TDD, 90% coverage, type hints, docstrings, clean workspace, review commits
