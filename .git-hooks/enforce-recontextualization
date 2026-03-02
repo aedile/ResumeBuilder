@@ -20,7 +20,7 @@ if [ -z "$TASK" ]; then
     exit 0
 fi
 
-CHECKLIST_FILE=".recontextualization-${TASK}.md"
+CHECKLIST_FILE="docs/recontextualization/recontextualization-${TASK}.md"
 
 # Check if checklist file exists
 if [ ! -f "$CHECKLIST_FILE" ]; then
