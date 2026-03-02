@@ -107,6 +107,17 @@ CHECK_PRINT_QUALITY_TOOL = ToolDefinition(
 
 
 # ---------------------------------------------------------------------------
+# Module-level constants
+# ---------------------------------------------------------------------------
+
+_SECTION_KEYWORDS: dict[str, list[str]] = {
+    "experience": ["experience", "work", "employment", "positions", "history"],
+    "education": ["education", "academic", "degree", "university", "college"],
+    "skills": ["skills", "technologies", "competencies", "expertise"],
+    "summary": ["summary", "profile", "about", "objective"],
+}
+
+# ---------------------------------------------------------------------------
 # Internal HTML parser helpers
 # ---------------------------------------------------------------------------
 
@@ -130,6 +141,10 @@ class _HeadingAltParser(HTMLParser):
                 self.img_missing_alt += 1
         elif tag_lower == "main":
             self.has_main = True
+        else:
+            attr_dict = dict(attrs)
+            if attr_dict.get("role") == "main":
+                self.has_main = True
 
 
 class _SectionParser(HTMLParser):
@@ -266,14 +281,6 @@ def evaluate_layout(html_content: str) -> str:
 
     parser = _SectionParser()
     parser.feed(html_content)
-
-    # Expected sections by keyword groups
-    _SECTION_KEYWORDS: dict[str, list[str]] = {
-        "experience": ["experience", "work", "employment", "positions", "history"],
-        "education": ["education", "academic", "degree", "university", "college"],
-        "skills": ["skills", "technologies", "competencies", "expertise"],
-        "summary": ["summary", "profile", "about", "objective"],
-    }
 
     sections_found: list[str] = []
     suggestions: list[str] = []

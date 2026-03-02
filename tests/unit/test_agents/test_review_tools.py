@@ -81,6 +81,15 @@ class TestCheckAccessibility:
             "main" in issue.lower() or "landmark" in issue.lower() for issue in data["issues"]
         )
 
+    def test_role_main_accepted_as_landmark(self) -> None:
+        """check_accessibility accepts role='main' as equivalent to <main> element."""
+        html = '<html><body><div role="main"><h1>Name</h1><h2>Section</h2></div></body></html>'
+        result = check_accessibility(html_content=html)
+        data = json.loads(result)
+        assert not any(
+            "main" in issue.lower() or "landmark" in issue.lower() for issue in data["issues"]
+        )
+
     def test_returns_json_string(self) -> None:
         """check_accessibility always returns a valid JSON string."""
         result = check_accessibility(html_content="<html><body><h1>Test</h1></body></html>")
@@ -139,7 +148,7 @@ class TestEvaluateLayout:
         html = "<html><body><main><h1>Alex Chen</h1></main></body></html>"
         result = evaluate_layout(html_content=html)
         data = json.loads(result)
-        assert data["layout_score"] < 100
+        assert data["layout_score"] == 20  # 20pts for h1 only; no sections, no header
 
     def test_returns_sections_found_list(self) -> None:
         """evaluate_layout returns a list of identified section names."""
