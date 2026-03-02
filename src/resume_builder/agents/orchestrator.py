@@ -15,6 +15,7 @@ CONSTITUTION Priority 5: Type hints, docstrings
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from resume_builder.agents.matcher_agent import MatcherAgent
@@ -28,6 +29,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from resume_builder.models.match import JobDescription, MatchReport
+
+logger = logging.getLogger(__name__)
 
 
 class OrchestratorAgent:
@@ -114,7 +117,7 @@ class OrchestratorAgent:
         if approval_callback is not None and not approval_callback(match):
             errors.append("Optimization skipped: approval rejected by approval_callback")
             return FinalResult(
-                resume=OptimizedResume(),
+                optimized=OptimizedResume(),
                 match=match,
                 token_usage=self._aggregate_token_usage(),
                 errors=errors,
@@ -129,6 +132,7 @@ class OrchestratorAgent:
         try:
             optimized = await self.optimizer.optimize(resume, job, match)
         except Exception as exc:
+            logger.error("Optimizer step failed: %s", exc, exc_info=True)
             errors.append(f"Optimizer step failed: {exc}")
             optimized = OptimizedResume()
 
@@ -138,7 +142,7 @@ class OrchestratorAgent:
             on_progress("complete")
 
         return FinalResult(
-            resume=optimized,
+            optimized=optimized,
             match=match,
             token_usage=self._aggregate_token_usage(),
             errors=errors,

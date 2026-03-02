@@ -17,11 +17,11 @@ class FinalResult(BaseModel):
     """The complete output of the orchestration pipeline.
 
     Produced by ``OrchestratorAgent.run()`` after all agents have executed.
-    When the optimizer step fails gracefully, ``resume`` holds an empty
+    When the optimizer step fails gracefully, ``optimized`` holds an empty
     ``OptimizedResume`` and ``errors`` records the failure description.
 
     Args:
-        resume: Optimized resume content. May be empty if the optimizer step
+        optimized: Optimized resume content. May be empty if the optimizer step
             failed (check ``errors``).
         match: Job-fit analysis from the Matcher Agent. ``None`` only if the
             matching step itself failed (in which case a ``ParseError`` is
@@ -31,7 +31,7 @@ class FinalResult(BaseModel):
             failure or approval rejection). Empty list on a fully successful run.
     """
 
-    resume: OptimizedResume
+    optimized: OptimizedResume
     match: MatchReport | None = None
     token_usage: TokenUsage = TokenUsage()
     errors: list[str] = []

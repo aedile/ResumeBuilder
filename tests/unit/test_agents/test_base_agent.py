@@ -7,6 +7,7 @@ All tests use mocked Anthropic clients — no real API calls ever made.
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import MagicMock, patch
 
 import anthropic
@@ -242,6 +243,22 @@ class TestBaseAgentSendMessage:
         roles = [m["role"] for m in agent.message_history]
         assert roles.count("user") == 2
         assert roles.count("assistant") == 2
+
+    async def test_unknown_tool_logs_warning(
+        self, mock_client: MagicMock, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Unknown tool calls produce a WARNING log entry with the tool name."""
+        tool_response = _make_tool_response("toolu_99", "nonexistent_tool", {})
+        final_response = _make_text_response("ok")
+        mock_client.messages.create.side_effect = [tool_response, final_response]
+
+        agent = BaseAgent(client=mock_client)
+        with caplog.at_level(logging.WARNING, logger="resume_builder.agents.base"):
+            await agent.send_message("Call unknown tool")
+
+        assert any(
+            "nonexistent_tool" in r.message and r.levelno == logging.WARNING for r in caplog.records
+        )
 
 
 class TestBaseAgentRetry:

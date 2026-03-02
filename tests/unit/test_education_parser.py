@@ -85,3 +85,31 @@ Test University,2015,2019,BS Degree,Test activities
         # Year-only should parse as integers
         assert education[0].start_year == 2015
         assert education[0].end_year == 2019
+
+    def test_parse_education_present_end_date_returns_none(self, tmp_path: Path) -> None:
+        """Non-numeric end date like 'Present' is treated as None, not an error."""
+        csv_content = """School Name,Start Date,End Date,Degree Name,Activities
+MIT,2020,Present,PhD Computer Science,
+"""
+        csv_file = tmp_path / "education.csv"
+        csv_file.write_text(csv_content, encoding="utf-8")
+
+        education = parse_education(csv_file)
+
+        assert len(education) == 1
+        assert education[0].start_year == 2020
+        assert education[0].end_year is None
+
+    def test_parse_education_malformed_year_returns_none(self, tmp_path: Path) -> None:
+        """Malformed year values degrade gracefully to None (not ValueError)."""
+        csv_content = """School Name,Start Date,End Date,Degree Name,Activities
+State College,2010-01,bad_year,BA History,
+"""
+        csv_file = tmp_path / "education.csv"
+        csv_file.write_text(csv_content, encoding="utf-8")
+
+        education = parse_education(csv_file)
+
+        assert len(education) == 1
+        assert education[0].start_year is None
+        assert education[0].end_year is None

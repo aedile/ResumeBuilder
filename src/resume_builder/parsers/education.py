@@ -3,29 +3,29 @@
 from __future__ import annotations
 
 import csv
-from datetime import date
 from pathlib import Path
 
 from resume_builder.models.resume import Education
 
 
-def _parse_year(year_str: str) -> date | None:
-    """Parse year string to date (January 1st of that year).
+def _parse_year_int(year_str: str | None) -> int | None:
+    """Parse a year string to int, degrading gracefully on invalid input.
 
-    LinkedIn Education exports use years only (e.g., "2010").
+    LinkedIn Education exports use year-only strings (e.g. ``"2010"``), but
+    can also contain non-numeric values such as ``"Present"`` or malformed
+    date strings. Returns ``None`` for any value that cannot be parsed as a
+    plain integer.
 
     Args:
-        year_str: Year string or empty string.
+        year_str: Year string from the CSV, or ``None`` / empty string.
 
     Returns:
-        Date object (January 1st), or None if empty/invalid.
+        Integer year, or ``None`` if the value is absent or non-numeric.
     """
     if not year_str or not year_str.strip():
         return None
-
     try:
-        year = int(year_str.strip())
-        return date(year, 1, 1)
+        return int(year_str.strip())
     except ValueError:
         return None
 
@@ -69,8 +69,8 @@ def parse_education(csv_path: Path) -> list[Education]:
             edu = Education(
                 school_name=school,
                 degree_name=degree,
-                start_year=int(row["Start Date"]) if row.get("Start Date") else None,
-                end_year=int(row["End Date"]) if row.get("End Date") else None,
+                start_year=_parse_year_int(row.get("Start Date")),
+                end_year=_parse_year_int(row.get("End Date")),
                 activities=row.get("Activities") or None,
             )
             education_list.append(edu)
