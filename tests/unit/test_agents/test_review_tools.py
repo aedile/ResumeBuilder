@@ -23,7 +23,6 @@ from resume_builder.agents.tools.review import (
 )
 from resume_builder.models.agent import ToolDefinition
 
-
 # ---------------------------------------------------------------------------
 # check_accessibility
 # ---------------------------------------------------------------------------
@@ -34,7 +33,9 @@ class TestCheckAccessibility:
 
     def test_valid_heading_hierarchy_passes(self) -> None:
         """check_accessibility accepts sequential heading levels h1→h2→h3."""
-        html = "<html><body><h1>Name</h1><h2>Experience</h2><h3>Role</h3></body></html>"
+        html = (
+            "<html><body><main><h1>Name</h1><h2>Experience</h2><h3>Role</h3></main></body></html>"
+        )
         result = check_accessibility(html_content=html)
         data = json.loads(result)
         assert data["is_accessible"] is True
@@ -67,14 +68,18 @@ class TestCheckAccessibility:
         html = "<html><body><div><h1>Name</h1></div></body></html>"
         result = check_accessibility(html_content=html)
         data = json.loads(result)
-        assert any("main" in issue.lower() or "landmark" in issue.lower() for issue in data["issues"])
+        assert any(
+            "main" in issue.lower() or "landmark" in issue.lower() for issue in data["issues"]
+        )
 
     def test_document_with_main_landmark_passes(self) -> None:
         """check_accessibility accepts HTML with a <main> landmark."""
         html = "<html><body><main><h1>Name</h1><h2>Experience</h2></main></body></html>"
         result = check_accessibility(html_content=html)
         data = json.loads(result)
-        assert not any("main" in issue.lower() or "landmark" in issue.lower() for issue in data["issues"])
+        assert not any(
+            "main" in issue.lower() or "landmark" in issue.lower() for issue in data["issues"]
+        )
 
     def test_returns_json_string(self) -> None:
         """check_accessibility always returns a valid JSON string."""
@@ -284,17 +289,27 @@ class TestCheckPrintQuality:
 
     def test_display_none_is_flagged(self) -> None:
         """check_print_quality flags elements with display:none inline style."""
-        html = "<html><body><h1>Name</h1><section style='display:none'>Hidden</section></body></html>"
+        html = (
+            "<html><body><h1>Name</h1><section style='display:none'>Hidden</section></body></html>"
+        )
         result = check_print_quality(html_content=html)
         data = json.loads(result)
-        assert any("display" in issue.lower() or "hidden" in issue.lower() for issue in data["issues"])
+        assert any(
+            "display" in issue.lower() or "hidden" in issue.lower() for issue in data["issues"]
+        )
 
     def test_overflow_hidden_is_flagged(self) -> None:
         """check_print_quality flags elements with overflow:hidden that could clip content."""
-        html = "<html><body><div style='overflow:hidden;height:100px'><h1>Name</h1><p>Long content...</p></div></body></html>"
+        html = (
+            "<html><body>"
+            "<div style='overflow:hidden;height:100px'><h1>Name</h1><p>Long content...</p></div>"
+            "</body></html>"
+        )
         result = check_print_quality(html_content=html)
         data = json.loads(result)
-        assert any("overflow" in issue.lower() or "clip" in issue.lower() for issue in data["issues"])
+        assert any(
+            "overflow" in issue.lower() or "clip" in issue.lower() for issue in data["issues"]
+        )
 
     def test_returns_issues_list(self) -> None:
         """check_print_quality always returns an issues list."""
@@ -325,7 +340,11 @@ class TestCheckPrintQuality:
 
     def test_fixed_height_with_overflow_is_flagged(self) -> None:
         """check_print_quality flags fixed-height containers that may clip content."""
-        html = "<html><body><div style='height:200px;overflow:hidden'><p>Content</p></div></body></html>"
+        html = (
+            "<html><body>"
+            "<div style='height:200px;overflow:hidden'><p>Content</p></div>"
+            "</body></html>"
+        )
         result = check_print_quality(html_content=html)
         data = json.loads(result)
         assert len(data["issues"]) > 0
