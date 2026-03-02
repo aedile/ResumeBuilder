@@ -58,13 +58,15 @@ Every code change follows this exact sequence - no exceptions:
    ```
    - Commit: `refactor: improve <feature>`
 
-4. **REVIEW**: Spawn three specialized subagents in parallel (MANDATORY)
+4. **REVIEW**: Spawn specialized subagents in parallel (MANDATORY)
    - In ONE message, invoke: `qa-reviewer`, `ui-ux-reviewer`, `devops-reviewer` via Task tool
+   - Also invoke `architecture-reviewer` when diff touches models/, agents/, parsers/, generators/, api/, or new src/ files
    - Each agent reads the constitution independently and reviews with fresh context
-   - Three commits required: `review(qa):`, `review(ui-ux):`, `review(devops):`
-   - Each commit body is the agent's structured finding (PASS / FINDING / SKIP per item)
+   - Each agent includes a **Retrospective Note** in their output — included in the commit body
+   - Commits required: `review(qa):`, `review(ui-ux):`, `review(devops):`, `review(arch):` (if structural), `docs: update RETRO_LOG`
+   - Each commit body is the agent's structured finding (PASS / FINDING / SKIP per item) + Retrospective Note
    - See `AUTONOMOUS_DEVELOPMENT_PROMPT.md § Phase 4` and `.claude/agents/` for agent definitions
-   - Commit: `review(qa): <task> — PASS/FINDING` (+ body with per-item results)
+   - Commit: `review(qa): <task> — PASS/FINDING` (+ body with per-item results + Retrospective Note)
 
 ### Quality Gates (All Must Pass)
 
@@ -143,6 +145,7 @@ fix/P1-T03-date-parsing-bug
 | `sample_data/` | Demo LinkedIn data (fictional) | Committed |
 | `docs/adr/` | Architecture decisions | Committed |
 | `docs/recontextualization/` | Task-transition checklists | Committed |
+| `docs/RETRO_LOG.md` | Living ledger of review retro notes | Committed |
 | `.claude/agents/` | Specialized review subagents | Committed |
 | `data/` | Real user LinkedIn data | **GITIGNORED** |
 | `output/` | Generated resumes | **GITIGNORED** |
@@ -385,7 +388,7 @@ git commit -m "..."             # Recommit without PII
 BEFORE CODING:     Read task spec → Create branch → Write failing test
 WHILE CODING:      Minimal implementation → Pass tests → Refactor
 BEFORE COMMIT:     git status → git diff → ruff → mypy → pytest → vulture → pre-commit
-AFTER CODE:        Spawn qa-reviewer + ui-ux-reviewer + devops-reviewer in ONE parallel message → three review: commits
+AFTER CODE:        Spawn qa/ui-ux/devops reviewers in ONE parallel message (+ arch-reviewer if structural) → review: commits + RETRO_LOG update
 COMMIT MESSAGE:    type: description (test:, feat:, fix:, refactor:, review:, docs:, chore:)
 NEVER:             --no-verify, skip hooks, commit PII, dead code, untyped code
 ALWAYS:            TDD, 90% coverage, type hints, docstrings, clean workspace, review commits
