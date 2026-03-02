@@ -244,7 +244,6 @@ class TestBaseAgentSendMessage:
         assert roles.count("user") == 2
         assert roles.count("assistant") == 2
 
-
     async def test_unknown_tool_logs_warning(
         self, mock_client: MagicMock, caplog: pytest.LogCaptureFixture
     ) -> None:
@@ -258,8 +257,7 @@ class TestBaseAgentSendMessage:
             await agent.send_message("Call unknown tool")
 
         assert any(
-            "nonexistent_tool" in r.message and r.levelno == logging.WARNING
-            for r in caplog.records
+            "nonexistent_tool" in r.message and r.levelno == logging.WARNING for r in caplog.records
         )
 
 

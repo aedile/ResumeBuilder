@@ -18,8 +18,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-logger = logging.getLogger(__name__)
-
 from resume_builder.agents.matcher_agent import MatcherAgent
 from resume_builder.agents.optimizer_agent import OptimizerAgent
 from resume_builder.agents.parser_agent import ParserAgent
@@ -31,6 +29,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from resume_builder.models.match import JobDescription, MatchReport
+
+logger = logging.getLogger(__name__)
 
 
 class OrchestratorAgent:
@@ -117,7 +117,7 @@ class OrchestratorAgent:
         if approval_callback is not None and not approval_callback(match):
             errors.append("Optimization skipped: approval rejected by approval_callback")
             return FinalResult(
-                resume=OptimizedResume(),
+                optimized=OptimizedResume(),
                 match=match,
                 token_usage=self._aggregate_token_usage(),
                 errors=errors,
@@ -142,7 +142,7 @@ class OrchestratorAgent:
             on_progress("complete")
 
         return FinalResult(
-            resume=optimized,
+            optimized=optimized,
             match=match,
             token_usage=self._aggregate_token_usage(),
             errors=errors,

@@ -18,12 +18,12 @@ from typing import TYPE_CHECKING, Any
 
 import anthropic
 
-logger = logging.getLogger(__name__)
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 from resume_builder.models.agent import AgentResponse, TokenUsage, ToolDefinition
+
+logger = logging.getLogger(__name__)
 
 
 class BaseAgent:

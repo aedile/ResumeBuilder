@@ -153,10 +153,10 @@ class TestOrchestratorAgentRun:
         sample_job: JobDescription,
         linkedin_data: dict[str, str],
     ) -> None:
-        """run() result.resume is an OptimizedResume."""
+        """run() result.optimized is an OptimizedResume."""
         orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
-        assert isinstance(result.resume, OptimizedResume)
+        assert isinstance(result.optimized, OptimizedResume)
 
     async def test_run_result_contains_match_report(
         self,
@@ -420,9 +420,9 @@ class TestOrchestratorFailures:
         mock_optimizer.optimize.side_effect = ParseError("optimizer error")
         orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
         result = await orch.run(linkedin_data, sample_job)
-        assert isinstance(result.resume, OptimizedResume)
-        assert result.resume.summary is None
-        assert result.resume.changes == []
+        assert isinstance(result.optimized, OptimizedResume)
+        assert result.optimized.summary is None
+        assert result.optimized.changes == []
 
     async def test_run_optimizer_failure_logs_error(
         self,
@@ -440,8 +440,7 @@ class TestOrchestratorFailures:
             await orch.run(linkedin_data, sample_job)
 
         assert any(
-            "optimizer" in r.message.lower() and r.levelno == logging.ERROR
-            for r in caplog.records
+            "optimizer" in r.message.lower() and r.levelno == logging.ERROR for r in caplog.records
         )
 
 
@@ -521,19 +520,19 @@ class TestFinalResultModel:
 
     def test_final_result_defaults(self) -> None:
         """FinalResult has sensible defaults."""
-        result = FinalResult(resume=OptimizedResume(), token_usage=TokenUsage())
+        result = FinalResult(optimized=OptimizedResume(), token_usage=TokenUsage())
         assert result.match is None
         assert result.errors == []
 
     def test_final_result_full_construction(self) -> None:
         """FinalResult accepts all fields."""
         result = FinalResult(
-            resume=OptimizedResume(summary="Great engineer"),
+            optimized=OptimizedResume(summary="Great engineer"),
             match=MatchReport(overall_score=90),
             token_usage=TokenUsage(input_tokens=100, output_tokens=50),
             errors=["optimizer skipped"],
         )
-        assert result.resume.summary == "Great engineer"
+        assert result.optimized.summary == "Great engineer"
         assert result.match is not None
         assert result.match.overall_score == 90
         assert result.token_usage.total_tokens == 150
@@ -542,7 +541,7 @@ class TestFinalResultModel:
     def test_final_result_serializes_to_json(self) -> None:
         """FinalResult serializes cleanly via model_dump_json."""
         result = FinalResult(
-            resume=OptimizedResume(changes=["rewrote summary"]),
+            optimized=OptimizedResume(changes=["rewrote summary"]),
             token_usage=TokenUsage(input_tokens=50, output_tokens=25),
         )
         data = json.loads(result.model_dump_json())
