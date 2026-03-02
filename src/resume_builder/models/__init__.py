@@ -12,6 +12,7 @@ from .agent import (
 from .match import JobDescription, MatchReport
 from .optimizer import OptimizedResume
 from .orchestrator import FinalResult
+from .qa import QAReport
 from .resume import (
     Certification,
     Education,
@@ -42,6 +43,7 @@ __all__ = [
     "Profile",
     "Project",
     "Publication",
+    "QAReport",
     "Resume",
     "Skill",
     "TokenUsage",

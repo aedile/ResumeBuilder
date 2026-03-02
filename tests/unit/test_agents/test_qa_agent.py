@@ -124,7 +124,7 @@ class TestQAAgentInit:
 
 
 # ---------------------------------------------------------------------------
-# QAAgent.review()
+# QAAgent.review() method tests
 # ---------------------------------------------------------------------------
 
 
@@ -183,18 +183,14 @@ class TestQAAgentReview:
         call_args = mock_client.messages.create.call_args
         assert call_args.kwargs.get("system") == QAAgent.SYSTEM_PROMPT
 
-    async def test_review_invalid_json_raises_parse_error(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_review_invalid_json_raises_parse_error(self, mock_client: MagicMock) -> None:
         """review() raises ParseError when API returns non-JSON text."""
         mock_client.messages.create.return_value = _make_text_response("not valid json")
         agent = QAAgent(client=mock_client)
         with pytest.raises(ParseError):
             await agent.review(_HTML_FIXTURE)
 
-    async def test_review_invalid_schema_raises_parse_error(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_review_invalid_schema_raises_parse_error(self, mock_client: MagicMock) -> None:
         """review() raises ParseError when JSON doesn't match QAReport schema."""
         mock_client.messages.create.return_value = _make_text_response('{"bad": "schema"}')
         agent = QAAgent(client=mock_client)
