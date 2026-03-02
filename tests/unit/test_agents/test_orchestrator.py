@@ -8,6 +8,7 @@ All tests use mocked sub-agents — no real API calls ever made.
 from __future__ import annotations
 
 import json
+import logging
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -422,6 +423,26 @@ class TestOrchestratorFailures:
         assert isinstance(result.resume, OptimizedResume)
         assert result.resume.summary is None
         assert result.resume.changes == []
+
+    async def test_run_optimizer_failure_logs_error(
+        self,
+        mock_parser: MagicMock,
+        mock_matcher: MagicMock,
+        mock_optimizer: MagicMock,
+        sample_job: JobDescription,
+        linkedin_data: dict[str, str],
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """run() logs an ERROR when the optimizer step raises an exception."""
+        mock_optimizer.optimize.side_effect = ParseError("optimizer blew up")
+        orch = OrchestratorAgent(parser=mock_parser, matcher=mock_matcher, optimizer=mock_optimizer)
+        with caplog.at_level(logging.ERROR, logger="resume_builder.agents.orchestrator"):
+            await orch.run(linkedin_data, sample_job)
+
+        assert any(
+            "optimizer" in r.message.lower() and r.levelno == logging.ERROR
+            for r in caplog.records
+        )
 
 
 # ---------------------------------------------------------------------------
