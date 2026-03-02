@@ -72,7 +72,7 @@ You are an autonomous development agent working on **Resume Builder**, a profess
   - Commit: `refactor: improve [feature] quality`
 - **REVIEW Phase**: Run 3-round self-review; commit findings (mandatory even if no findings)
   - Commit: `review(qa): [task] — PASS` or `review(qa): [task] — FINDING`
-  - Commit: `review(ui): [task] — PASS/SKIP`
+  - Commit: `review(ui-ux): [task] — PASS/SKIP`
   - Commit: `review(devops): [task] — PASS`
   - See Phase 4 for exact checklist and commit body format.
 
@@ -366,13 +366,24 @@ Summary: <2-3 sentences describing what was implemented and why>
 
 #### Step 2: Spawn All Three Reviewers in Parallel
 
-**In a single message**, invoke all three using the Task tool. They run concurrently — no need to wait for one before starting the next:
+**In a single message**, invoke all three using the Task tool with `subagent_type="general-purpose"`. They run concurrently — no need to wait for one before starting the next.
 
-1. `Task(subagent_type="qa-reviewer", prompt=<context block>)`
-2. `Task(subagent_type="ui-ux-reviewer", prompt=<context block>)`
-3. `Task(subagent_type="devops-reviewer", prompt=<context block>)`
+For each reviewer, prepend the full contents of its agent definition file to the context block:
 
-Each agent reads the full agent definition from `.claude/agents/<name>.md` and returns a structured finding block.
+```
+You are acting as the `<agent-name>` specialized agent for this project.
+Your full role definition is below.
+
+---
+<full contents of .claude/agents/<agent-name>.md, excluding frontmatter>
+---
+
+<context block from Step 1>
+```
+
+The agent definition files (`.claude/agents/qa-reviewer.md`, etc.) contain the full checklist, bash commands, and output format instructions — include them verbatim so the subagent has complete guidance.
+
+> **Note**: Custom agent names (`qa-reviewer`, `ui-ux-reviewer`, `devops-reviewer`) are defined in `.claude/agents/` and will be directly invocable via `subagent_type` when that feature is available in the running version of Claude Code. Until then, use `general-purpose` with the agent definition embedded in the prompt as described above.
 
 #### Step 3: Process Findings
 
@@ -462,10 +473,13 @@ After ALL 3 reviews pass:
 
 2. **Generate PR Description via Subagent**
 
-   Spawn the `pr-describer` agent to draft the PR body:
+   Spawn the `pr-describer` agent (`general-purpose` type, with `.claude/agents/pr-describer.md` content prepended) to draft the PR body:
 
    ```
-   Task(subagent_type="pr-describer", prompt="""
+   Task(subagent_type="general-purpose", prompt="""
+   You are acting as the `pr-describer` agent for this project.
+   <full contents of .claude/agents/pr-describer.md, excluding frontmatter>
+   ---
    Task: <task-id> — <task-name>
    Branch: <branch-name>
    Summary: <what was implemented>
@@ -487,18 +501,18 @@ After ALL 3 reviews pass:
    )"
    ```
 
-3. **Wait for User Review**
+4. **Wait for User Review**
    - User will review PR and provide feedback
    - Make any requested changes in SAME branch
    - User will merge when approved
 
-4. **After User Merges**
+5. **After User Merges**
    - Switch back to main: `git checkout main`
    - Pull latest: `git pull origin main`
    - Update backlog to mark task complete
    - Re-contextualize and continue to next task
 
-5. **Re-contextualization After Merge**
+6. **Re-contextualization After Merge**
    - Read `CONSTITUTION.md`
    - Read `AUTONOMOUS_DEVELOPMENT_PROMPT.md`
    - Continue to next task
@@ -668,7 +682,7 @@ After completing task, before merging:
 - [ ] Run all quality checks (tests, lint, type, security, vulture)
 - [ ] Execute 3-round self-review (QA → UI/UX → DevOps)
 - [ ] Committed `review(qa):` with itemized checklist results
-- [ ] Committed `review(ui):` with itemized checklist results (or SKIP with reason)
+- [ ] Committed `review(ui-ux):` with itemized checklist results (or SKIP with reason)
 - [ ] Committed `review(devops):` with itemized checklist results
 - [ ] No self-review loops detected
 - [ ] Update `docs/REVIEW_FINDINGS.md` if any finding was non-trivial
