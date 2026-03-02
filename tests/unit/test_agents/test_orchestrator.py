@@ -548,3 +548,14 @@ class TestFinalResultModel:
         data = json.loads(result.model_dump_json())
         assert data["errors"] == []
         assert data["token_usage"]["input_tokens"] == 50
+
+    def test_final_result_exposes_optimized_field(self) -> None:
+        """FinalResult.optimized holds the OptimizedResume (not .resume)."""
+        result = FinalResult(optimized=OptimizedResume(summary="Test summary"))
+        assert isinstance(result.optimized, OptimizedResume)
+        assert result.optimized.summary == "Test summary"
+
+    def test_final_result_has_no_resume_field(self) -> None:
+        """FinalResult has no .resume field — naming collision with Resume model removed."""
+        result = FinalResult(optimized=OptimizedResume())
+        assert not hasattr(result, "resume")
