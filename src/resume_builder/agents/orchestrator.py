@@ -15,7 +15,10 @@ CONSTITUTION Priority 5: Type hints, docstrings
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
+
+logger = logging.getLogger(__name__)
 
 from resume_builder.agents.matcher_agent import MatcherAgent
 from resume_builder.agents.optimizer_agent import OptimizerAgent
@@ -129,6 +132,7 @@ class OrchestratorAgent:
         try:
             optimized = await self.optimizer.optimize(resume, job, match)
         except Exception as exc:
+            logger.error("Optimizer step failed: %s", exc, exc_info=True)
             errors.append(f"Optimizer step failed: {exc}")
             optimized = OptimizedResume()
 

@@ -13,9 +13,12 @@ CONSTITUTION Priority 5: Type hints, docstrings
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import TYPE_CHECKING, Any
 
 import anthropic
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -180,6 +183,8 @@ class BaseAgent:
         for block in response.content:
             if block.type == "tool_use":
                 handler = self._tool_handlers.get(block.name)
+                if handler is None:
+                    logger.warning("Unknown tool requested by model: %s", block.name)
                 result = handler(**block.input) if handler else f"Unknown tool: {block.name}"
                 tool_results.append(
                     {
