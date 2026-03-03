@@ -11,22 +11,24 @@ import json
 
 import pytest
 
-from resume_builder.agents.tools.review import (
+from resume_builder.agents.tools.review_hr import (
     ASSESS_PROFESSIONALISM_TOOL,
-    CHECK_ACCESSIBILITY_TOOL,
     CHECK_GRAMMAR_TOOL,
-    CHECK_PRINT_QUALITY_TOOL,
     DETECT_PLACEHOLDERS_TOOL,
-    EVALUATE_LAYOUT_TOOL,
     VALIDATE_FORMATTING_TOOL,
-    VERIFY_CONTRAST_TOOL,
     assess_professionalism,
-    check_accessibility,
     check_grammar,
-    check_print_quality,
     detect_placeholders,
-    evaluate_layout,
     validate_formatting,
+)
+from resume_builder.agents.tools.review_qa import (
+    CHECK_ACCESSIBILITY_TOOL,
+    CHECK_PRINT_QUALITY_TOOL,
+    EVALUATE_LAYOUT_TOOL,
+    VERIFY_CONTRAST_TOOL,
+    check_accessibility,
+    check_print_quality,
+    evaluate_layout,
     verify_contrast,
 )
 from resume_builder.models.agent import ToolDefinition
