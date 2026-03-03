@@ -574,7 +574,7 @@ _PLACEHOLDER_PATTERNS: list[tuple[str, str]] = [
     (r"\bXXX\b", "XXX marker"),
     (r"(?i)\bTODO\b", "TODO marker"),
     (r"(?i)\bTBD\b", "TBD marker"),
-    (r"\[[A-Za-z][A-Za-z\s]{1,30}\]", "bracket placeholder"),
+    (r"\[[A-Za-z][A-Za-z ]{1,30}\]", "bracket placeholder"),
     (r"\b[\w.+-]+@example\.com\b", "example.com email"),
     (r"\b[\w.+-]+@your-?(?:email|domain|company)\.(?:com|org)\b", "template email"),
 ]
@@ -689,11 +689,13 @@ def assess_professionalism(text: str) -> str:
     score = 100
 
     # First-person pronouns (-20 if found)
-    if _FIRST_PERSON_RE.search(text):
+    fp_matches = _FIRST_PERSON_RE.findall(text)
+    if fp_matches:
         score -= 20
+        fp_unique = list(dict.fromkeys(m.lower() for m in fp_matches))
         issues.append(
-            "First-person pronouns detected (I, me, my). "
-            "Resume bullet points should start with action verbs, not 'I'."
+            f"First-person language detected ({', '.join(repr(p) for p in fp_unique)}). "
+            "Remove first-person pronouns; use action-verb openings and third-person perspective."
         )
         suggestions.append(
             "Remove first-person pronouns. Start bullets with action verbs "
