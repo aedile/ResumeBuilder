@@ -22,6 +22,22 @@ Entries are not edited after writing — they represent the perspective of the r
 
 ---
 
+## Open Advisory Items
+
+Advisory findings from review cycles that do not yet have a committed implementation. Items are added here when the RETRO_LOG is updated at the end of a review cycle. Items with a named target task are drained (row deleted) when that task is complete. Unassigned items are picked up during task planning when they naturally fit the work in scope.
+
+| Finding | Source | Target |
+|---------|--------|--------|
+| `agents/tools/__init__.py` not re-exporting tool symbols (low priority — all agents import submodules directly) | DevOps · P3-T01 | Unassigned |
+| `MatchReport.overall_score` missing `Field(ge=0, le=100)` constraint | Architecture · P3-T02 | Unassigned |
+| `QAReport.is_accessible` docstring should note "static analysis only, not WCAG 2.1 AA compliance" | UI/UX · P3-T02 | P3-T07 |
+| `MAX_HTML_SIZE` guard on `QAAgent.review(html_content)` — unguarded string accepted by web endpoint | DevOps · P3-T02 | P3-T06 |
+| CI `PYTHON_VERSION` pins 3.11 vs local 3.14.1 — runtime divergence risk | DevOps · P3-T02 | Phase 4 |
+| `"various"` in `_VAGUE_PHRASES` may false-positive on legitimate usage | UI/UX · P3-T03 | Unassigned |
+| `MAX_TEXT_SIZE` guard on `HRAgent.review(text)` — implement alongside MAX_HTML_SIZE | DevOps · P3-T04 | P3-T06 |
+
+---
+
 ## Log
 
 ### [2026-03-02] chore/review-workflow-improvements — Review Workflow Improvements (PR #20)
