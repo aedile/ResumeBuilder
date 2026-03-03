@@ -147,9 +147,7 @@ class TestHRAgentReview:
         result = await agent.review(_TEXT_FIXTURE)
         assert result.has_grammar_issues is False
 
-    async def test_review_populates_is_formatting_consistent(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_review_populates_is_formatting_consistent(self, mock_client: MagicMock) -> None:
         """review() returns an HRReport with is_formatting_consistent from API response."""
         agent = HRAgent(client=mock_client)
         result = await agent.review(_TEXT_FIXTURE)
@@ -208,23 +206,21 @@ class TestHRAgentReview:
         """HR agent checks grammar and returns a boolean flag."""
         agent = HRAgent(client=mock_client)
         result = await agent.review(_TEXT_FIXTURE)
-        assert isinstance(result.has_grammar_issues, bool)
+        assert result.has_grammar_issues is False
 
     async def test_review_validates_dates(self, mock_client: MagicMock) -> None:
         """HR agent validates date formatting consistency."""
         agent = HRAgent(client=mock_client)
         result = await agent.review(_TEXT_FIXTURE)
-        assert isinstance(result.is_formatting_consistent, bool)
+        assert result.is_formatting_consistent is True
 
     async def test_review_detects_placeholders(self, mock_client: MagicMock) -> None:
         """HR agent reports placeholder detection result."""
         agent = HRAgent(client=mock_client)
         result = await agent.review(_TEXT_FIXTURE)
-        assert isinstance(result.has_placeholders, bool)
+        assert result.has_placeholders is False
 
-    async def test_review_reports_grammar_issues_when_present(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_review_reports_grammar_issues_when_present(self, mock_client: MagicMock) -> None:
         """review() surfaces grammar issues from the API response."""
         report_with_grammar = json.dumps(
             {
