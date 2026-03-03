@@ -67,6 +67,7 @@ Every code change follows this exact sequence - no exceptions:
    - Each commit body is the agent's structured finding (PASS / FINDING / SKIP per item) + Retrospective Note
    - See `AUTONOMOUS_DEVELOPMENT_PROMPT.md § Phase 4` and `.claude/agents/` for agent definitions
    - Commit: `review(qa): <task> — PASS/FINDING` (+ body with per-item results + Retrospective Note)
+   - **After updating RETRO_LOG**: add any advisory findings without a named target task to the **Open Advisory Items** table in `docs/RETRO_LOG.md`; drain (delete) any rows whose target task was just completed
 
 ### Quality Gates (All Must Pass)
 
@@ -271,6 +272,7 @@ When working on a task from BACKLOG.md:
 - Read the full task specification
 - Identify acceptance criteria
 - Note dependencies and blockers
+- Check the **Open Advisory Items** table in `docs/RETRO_LOG.md` for any rows targeting this task — address them during implementation
 
 ### 2. Prepare
 - Create feature branch: `git checkout -b feat/P1-T03-resume-models`
@@ -385,10 +387,10 @@ git commit -m "..."             # Recommit without PII
 ## Quick Reference Card
 
 ```
-BEFORE CODING:     Read task spec → Create branch → Write failing test
+BEFORE CODING:     Read task spec → Check Open Advisory Items table for items targeting this task → Create branch → Write failing test
 WHILE CODING:      Minimal implementation → Pass tests → Refactor
 BEFORE COMMIT:     git status → git diff → ruff → mypy → pytest → vulture → pre-commit
-AFTER CODE:        Spawn qa/ui-ux/devops reviewers in ONE parallel message (+ arch-reviewer if structural) → review: commits + RETRO_LOG update
+AFTER CODE:        Spawn qa/ui-ux/devops reviewers in ONE parallel message (+ arch-reviewer if structural) → review: commits + RETRO_LOG update → add unassigned advisories to Open Advisory Items table → drain rows whose target task is now complete
 COMMIT MESSAGE:    type: description (test:, feat:, fix:, refactor:, review:, docs:, chore:)
 NEVER:             --no-verify, skip hooks, commit PII, dead code, untyped code
 ALWAYS:            TDD, 90% coverage, type hints, docstrings, clean workspace, review commits
