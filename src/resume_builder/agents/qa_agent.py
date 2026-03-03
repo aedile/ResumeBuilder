@@ -17,7 +17,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from resume_builder.agents.base import BaseAgent
-from resume_builder.agents.tools.review import (
+from resume_builder.agents.tools.review_qa import (
     CHECK_ACCESSIBILITY_TOOL,
     CHECK_PRINT_QUALITY_TOOL,
     EVALUATE_LAYOUT_TOOL,
