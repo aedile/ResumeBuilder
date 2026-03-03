@@ -9,6 +9,7 @@ from .agent import (
     ToolDefinition,
     ToolResult,
 )
+from .hr import HRReport
 from .match import JobDescription, MatchReport
 from .optimizer import OptimizedResume
 from .orchestrator import FinalResult
@@ -34,6 +35,7 @@ __all__ = [
     "Certification",
     "Education",
     "FinalResult",
+    "HRReport",
     "Honor",
     "JobDescription",
     "Language",
