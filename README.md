@@ -6,6 +6,8 @@ AI-powered resume builder using Claude's native tool_use — transforms LinkedIn
 
 Resume Builder is a Python application that uses Claude's multi-agent system to parse LinkedIn profile data, score it against a target job description, optimize the content, and generate professional resumes in HTML, PDF, and DOCX formats. The project also serves as a portfolio demonstration of context engineering, TDD methodology, and security-conscious AI development.
 
+> **This project is intentionally over-engineered.** It exists as a showcase for agentic development principles — strict TDD, multi-agent coordination, constitutional governance, parallel review cycles — not as a practical tool anyone should use to build a resume. The process is the product. If you came here looking for a real resume builder, you want something else.
+
 ## Current Status
 
 | Phase | Description | Status |
